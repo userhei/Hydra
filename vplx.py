@@ -34,11 +34,14 @@ class VplxDrbd(object):
                     self.blk_dev_name = result_dict[self.lun_id]
                     # print(self.blk_dev_name)
                 else:
+                    print('LUN does not exist')
                     sys.exit()
             else:
-                pass
+                print('check NETAPP fail')
+                sys.exit()
         else:
             print('lsscsi check fail')
+            sys.exit()
     # drdb--vi
 
     def get_folder(self):
@@ -95,6 +98,7 @@ class VplxDrbd(object):
                     sys.exit()
             else:
                 print(f'{self.res_name} drbd status matching failure')
+                sys.exit()
 
 
 class VplxCrm(VplxDrbd):
