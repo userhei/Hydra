@@ -12,6 +12,7 @@ class SSHConn(object):
         self._username = username
         self._password = password
         self.SSHConnection = None
+        self._connect()
 
     def _connect(self):
         try:
@@ -37,6 +38,8 @@ class SSHConn(object):
         if len(err) > 0:
             print(err.strip())
             return err
+        if data == b'':
+            return True
 
     def close(self):
         self.SSHConnection.close()
@@ -50,6 +53,7 @@ class TNConn(object):
         self._password = password
         self._timeout = timeout
         self.TN = telnetlib.Telnet()
+        self._connect()
 
     def _connect(self):
         try:
