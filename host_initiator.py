@@ -2,15 +2,14 @@
 
 import connect as c
 
+
 class HostTest():
     def __init__(self, unique_id):
         self.ssh = _ssh_instance()
         self.id = unique_id
-        
-
 
     def _ssh_instance(self):
-        return c.ConnSSH(host,port,user,password,timeout)
+        return c.ConnSSH(host, port, user, password, timeout)
 
     def _list_to_dict(self, arg_list):
         '''
@@ -25,7 +24,8 @@ class HostTest():
         return dic
 
     def _find_device(self, command_result):
-        re_find_id_dev = re.compile(r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z.]*(/dev/sd[a-z]{1,3})')
+        re_find_id_dev = re.compile(
+            r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z.]*(/dev/sd[a-z]{1,3})')
         re_result = re_find_id_dev.findall(command_result)
         # [('0', '/dev/sdb'), ('1', '/dev/sdc')]
         if re_result:
@@ -79,7 +79,7 @@ class HostTest():
         test_result = self.ssh.excute_command(test_cmd)
         if test_result:
             return self._get_dd_perf(test_result)
-        
+
     def read_test(self):
         test_cmd = f'dd if={mount_point}/t.dat of=/dev/zero bs=512k count=16'
         test_result = self.ssh.excute_command(test_cmd)
