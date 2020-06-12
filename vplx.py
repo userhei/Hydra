@@ -124,3 +124,4 @@ class VplxCrm(VplxDrbd):
     def iscsi_lun_start(self):
         comm_start = f'crm res start {self.lu_name}'
         self.ssh.exctCMD(comm_start)
+
