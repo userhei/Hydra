@@ -44,13 +44,13 @@ class VplxDrbd(object):
             sys.exit()
 
     def prepare_config_file(self):
-        context = '''resource %s {
-        on maxluntarget {
-        device /dev/%s;
-        disk %s;
+        context = f'''resource {self.res_name} {{
+        on maxluntarget {{
+        device /dev/{self.drbd_device_name};
+        disk {self.blk_dev_name};
         address 10.203.1.199:7789;
         meta-disk internal;
-        } }'''%(self.res_name,self.drbd_device_name,self.blk_dev_name)
+        }} }}'''
         echo_result=self.ssh.excute_command(f'echo {context} >> /etc/drbd.d/{self.res_name}.res').decode('utf-8')
         if echo_result is not True:
             print(echo_result)
