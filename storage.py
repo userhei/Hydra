@@ -9,7 +9,7 @@ class Storage:
         username = 'root'
         password = 'Feixi@123'
         timeout = 10
-        self.telnet_conn = connect.TNConn(
+        self.telnet_conn = connect.ConnTelnet(
             host, Port, username, password, timeout)
         self.lun_name = lun_name
 
