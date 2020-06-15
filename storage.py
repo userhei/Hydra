@@ -9,17 +9,16 @@ class Storage:
         username = 'root'
         password = 'Feixi@123'
         timeout = 10
-        self.telnet_conn = connect.TNConn(
+        self.telnet_conn = connect.ConnTelnet(
             host, Port, username, password, timeout)
-        self.telnet_conn._connect()
         self.lun_name = lun_name
 
     def lun_create(self):
-        lc_cmd = r'lun create -s 10m -t linux /vol/esxi/%s' % self.lun_name
+        lc_cmd = f'lun create -s 10m -t linux /vol/esxi/{self.lun_name}'
         self.telnet_conn.exctCMD(lc_cmd)
 
     def lun_map(self, lun_id):
-        lm_cmd = rf'lun map /vol/esxi/{self.lun_name} hydra {lun_id}'
+        lm_cmd = f'lun map /vol/esxi/{self.lun_name} hydra {lun_id}'
         self.telnet_conn.exctCMD(lm_cmd)
 
     def lun_create_verify(self):

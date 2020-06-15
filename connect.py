@@ -39,7 +39,6 @@ class ConnSSH(object):
         if len(err) > 0:
             print(err.strip())
             return err
-            
         if data == b'':
             return True
 
@@ -55,6 +54,7 @@ class ConnTelnet(object):
         self._password = password
         self._timeout = timeout
         self.TN = telnetlib.Telnet()
+        self._connect()
 
     def _connect(self):
         try:
