@@ -132,7 +132,7 @@ class VplxCrm(VplxDrbd):
         self.target_name = 't_test'
         self.order_name = f'or_{self.lu_name}'
 
-    def iscsi_lun_create(self):
+    def crm_create(self):
         command = f'crm conf primitive {self.lu_name} \
             iSCSILogicalUnit params target_iqn="{self.target_iqn}" \
             implementation=lio-t lun={self.lun_id} path={self.blk_dev_name} \
@@ -145,7 +145,7 @@ class VplxCrm(VplxDrbd):
             print('iscisi lun_create failed')
             sys.exit()
 
-    def iscsi_lun_setting(self):
+    def crm_setting(self):
         comm_col = f'crm conf colocation {self.colocation_name} inf: {self.lu_name} {self.target_name}'
         comm_ord = f'crm conf order {self.order_name} {self.target_name} {self.lu_name}'
         set_col = self.ssh.excute_command(comm_col)
@@ -161,7 +161,7 @@ class VplxCrm(VplxDrbd):
             print('setting colocation failed')
             sys.exit()
 
-    def iscsi_lun_start(self):
+    def crm_start(self):
         comm_start = f'crm res start {self.lu_name}'
         lun_start = self.ssh.excute_command(comm_start)
         if lun_start is True:
@@ -170,7 +170,10 @@ class VplxCrm(VplxDrbd):
         else:
             print('iscsi lun start failed')
 
-    def iscsi_lun_cfg(self):
-        if self.iscsi_lun_create():
-            if self.iscsi_lun_setting():
-                self.iscsi_lun_start()
+    def crm_cfg(self):
+        if self.crm_create():
+            if self.crm_setting():
+                self.crm_start()
+
+    def crm_verify(self):
+        pass
