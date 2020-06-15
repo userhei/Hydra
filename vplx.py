@@ -1,4 +1,4 @@
-#encoding=utf-8
+# encoding=utf-8
 import connect
 import time
 import sys
@@ -19,12 +19,12 @@ class VplxDrbd(object):
         port = 22
         username = 'root'
         password = 'password'
-        timeout = 10
+        timeout = 3
         self.ssh = connect.ConnSSH(host, port, username, password, timeout)
         self.lun_id = unique_id
-        self.res_name = f'res{unique_id}'#
+        self.res_name = f'res_{unique_name}'
         self.blk_dev_name = None
-        self.drbd_device_name = f'drbd{unique_id}'
+        self.drbd_device_name = f'drbd_dev_{unique_name}'
 
     def discover_new_lun(self):
         self.ssh.excute_command('rescan-scsi-bus.sh')
@@ -53,28 +53,28 @@ class VplxDrbd(object):
 
     def prepare_config_file(self):
         context = [rf'resource {self.res_name} {{',
-                    rf'\ \ \ \ on maxluntarget {{',
-                    rf'\ \ \ \ device /dev/{self.drbd_device_name}\;',
-                    rf'\ \ \ \ disk {self.blk_dev_name}\;',
-                    rf'\ \ \ \ address 10.203.1.199:7789\;',
-                    rf'\ \ \ \ meta-disk internal\;',
-                    rf'\ \ \ \ node-id 0\;'
-                    r'} }']
-                  
+                   rf'\ \ \ \ on maxluntarget {{',
+                   rf'\ \ \ \ device /dev/{self.drbd_device_name}\;',
+                   rf'\ \ \ \ disk {self.blk_dev_name}\;',
+                   rf'\ \ \ \ address 10.203.1.199:7789\;',
+                   rf'\ \ \ \ meta-disk internal\;',
+                   rf'\ \ \ \ node-id 0\;'
+                   r'} }']
 
         for echo_command in context:
-            echo_result=self.ssh.excute_command(f'echo {echo_command} >> /etc/drbd.d/{self.res_name}.res')
+            echo_result = self.ssh.excute_command(
+                f'echo {echo_command} >> /etc/drbd.d/{self.res_name}.res')
             if echo_result is True:
                 continue
             else:
                 print('fail to prepare drbd config file..')
                 sys.exit()
 
-
     def _drbd_init(self):
-        drbd_init=self.ssh.excute_command(f'drbdadm create-md {self.res_name}')
+        drbd_init = self.ssh.excute_command(
+            f'drbdadm create-md {self.res_name}')
         print(drbd_init)
-        if  drbd_init is not True:# re
+        if drbd_init is not True:  # re
             print('init success')
             return True
         else:
@@ -82,19 +82,22 @@ class VplxDrbd(object):
             sys.exit()
 
     def _drbd_up(self):
-        drbd_up=self.ssh.excute_command(f'drbdadm up {self.res_name}')
-        if  drbd_up is True:
+        drbd_up = self.ssh.excute_command(f'drbdadm up {self.res_name}')
+        if drbd_up is True:
             print('up success')
             return True
         else:
             print(f'drbd resource {self.res_name} up failed')
+
     def _drbd_primary(self):
-        drbd_primary=self.ssh.excute_command(f'drbdadm primary --force {self.res_name}')
+        drbd_primary = self.ssh.excute_command(
+            f'drbdadm primary --force {self.res_name}')
         if drbd_primary is True:
             print('primary success')
             return True
         else:
             print(f'drbd resource {self.res_name} primary failed')
+
     def drbd_cfg(self):
         if self._drbd_init():
             if self._drbd_up():
@@ -120,8 +123,8 @@ class VplxDrbd(object):
 
 
 class VplxCrm(VplxDrbd):
-    def __init__(self,unique_id, unique_name):
-        VplxDrbd.__init__(self,unique_id, unique_name)
+    def __init__(self, unique_id, unique_name):
+        VplxDrbd.__init__(self, unique_id, unique_name)
         self.lu_name = self.res_name
         self.colocation_name = f'co_{self.lu_name}'
         self.target_iqn = "iqn.2020-06.com.example:test-max-lun"
@@ -129,13 +132,12 @@ class VplxCrm(VplxDrbd):
         self.target_name = 't_test'
         self.order_name = f'or_{self.lu_name}'
 
-    def iscisi_lun_create(self):
-        # command = f'crm conf primitive {self.lu_name} iSCSILogicalUnit params target_iqn=“{self.target_iqn}” implementation=lio-t lun={self.lun_id} path={self.blk_dev_name} allowed_initiators=“{self.initiator_iqn}” op start timeout=40 interval=0 op stop timeout=40 interval=0 op monitor timeout=40 interval=50 meta target-role=Stopped'
-        command =u'crm conf primitive %s iSCSILogicalUnit params target_iqn=“%s” \
-        implementation=lio-t lun=%s path=%s allowed_initiators=“%s” \
-        op start timeout=40 interval=0 op stop timeout=40 interval=0 op monitor \
-        timeout=40 interval=50 meta target-role=Stopped'%(self.lu_name,self.target_iqn,self.lun_id,self.blk_dev_name,self.initiator_iqn)
-        comm=command.encode('utf-8')
+    def iscsi_lun_create(self):
+        command = f'crm conf primitive {self.lu_name} \
+            iSCSILogicalUnit params target_iqn="{self.target_iqn}" \
+            implementation=lio-t lun={self.lun_id} path={self.blk_dev_name} \
+            allowed_initiators="{self.initiator_iqn}" op start timeout=40 interval=0 op stop timeout=40 interval=0 op monitor timeout=40 interval=50 meta target-role=Stopped'
+        comm = command.encode('utf-8')
         if self.ssh.excute_command(comm) is True:
             print('iscisi lun_create success')
             return True
@@ -146,9 +148,9 @@ class VplxCrm(VplxDrbd):
     def iscsi_lun_setting(self):
         comm_col = f'crm conf colocation {self.colocation_name} inf: {self.lu_name} {self.target_name}'
         comm_ord = f'crm conf order {self.order_name} {self.target_name} {self.lu_name}'
-        set_col=self.ssh.excute_command(comm_col)
+        set_col = self.ssh.excute_command(comm_col)
         if set_col is True:
-            set_ord=self.ssh.excute_command(comm_ord)
+            set_ord = self.ssh.excute_command(comm_ord)
             if set_ord is True:
                 print('setting order and colocation successful')
                 return True
@@ -161,9 +163,14 @@ class VplxCrm(VplxDrbd):
 
     def iscsi_lun_start(self):
         comm_start = f'crm res start {self.lu_name}'
-        lun_start=self.ssh.excute_command(comm_start)
+        lun_start = self.ssh.excute_command(comm_start)
         if lun_start is True:
+            print('iscsi lun start successful')
             return True
         else:
             print('iscsi lun start failed')
 
+    def iscsi_lun_cfg(self):
+        if self.iscsi_lun_create():
+            if self.iscsi_lun_setting():
+                self.iscsi_lun_start()
