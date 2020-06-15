@@ -4,7 +4,7 @@ import time
 import telnetlib
 
 
-class SSHConn(object):
+class ConnSSH(object):
     def __init__(self, host, port, username, password, timeout):
         self._host = host
         self._port = port
@@ -22,18 +22,19 @@ class SSHConn(object):
                                  username=self._username,
                                  password=self._password,
                                  timeout=self._timeout)
-            time.sleep(1)
-            print('success')
-            objSSHClient.exec_command("\x003")
+            # time.sleep(1)
+            # print('success')
+            # objSSHClient.exec_command("\x003")
             self.SSHConnection = objSSHClient
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
-    def exctCMD(self, command):
+    def excute_command(self, command):
         stdin, stdout, stderr = self.SSHConnection.exec_command(command)
         data = stdout.read()
         if len(data) > 0:
             return data
+
         err = stderr.read()
         if len(err) > 0:
             print(err.strip())
@@ -45,7 +46,7 @@ class SSHConn(object):
         self.SSHConnection.close()
 
 
-class TNConn(object):
+class ConnTelnet(object):
     def __init__(self, host, Port, username, password, timeout):
         self._host = host
         self._port = Port
