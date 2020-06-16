@@ -1,3 +1,4 @@
+#  coding: utf-8
 import connect
 import time
 import sys
