@@ -2,6 +2,8 @@
 import paramiko
 import time
 import telnetlib
+import sys
+import sundry as s
 
 
 class ConnSSH(object):
@@ -22,12 +24,9 @@ class ConnSSH(object):
                                  username=self._username,
                                  password=self._password,
                                  timeout=self._timeout)
-            # time.sleep(1)
-            # print('success')
-            # objSSHClient.exec_command("\x003")
             self.SSHConnection = objSSHClient
         except Exception as e:
-            print(e)
+            s.pe(f'Connect to {self._host} failed with error: {e}')
 
     def excute_command(self, command):
         stdin, stdout, stderr = self.SSHConnection.exec_command(command)
@@ -39,6 +38,7 @@ class ConnSSH(object):
         if len(err) > 0:
             print(err.strip())
             return err
+
         if data == b'':
             return True
 
@@ -59,39 +59,26 @@ class ConnTelnet(object):
     def _connect(self):
         try:
             self.telnet.open(self._host, self._port)
-        except:
-            print('%sconnect fail' % self._host)
-            return False
+            self.telnet.read_until(b'Username:', timeout=1)
+            self.telnet.write(self._username.encode() + b'\n')
 
-        self.telnet.read_until(b'Username:', timeout=1)
-        self.telnet.write(b'\n')
-        self.telnet.write(self._username.encode() + b'\n')
+            self.telnet.read_until(b'Password:', timeout=1)
+            self.telnet.write(self._password.encode() + b'\n')
 
-        self.telnet.read_until(b'Password:', timeout=1)
-        self.telnet.write(self._password.encode() + b'\n')
-
-        rely = self.telnet.read_very_eager().decode()
-        if 'Login invalid' not in rely:
-            print('%slogin success' % self._host)
-            return True
-        else:
-            print('%slogin fail' % self._host)
-            return False
+        except Exception as e:
+            s.pe(f'Connect to {self._host} failed with error: {e}')
 
     # 定义exctCMD函数,用于执行命令
     def excute_command(self, cmd):
         self.telnet.write(cmd.encode().strip() + b'\r')
-        time.sleep(2)
+        time.sleep(0.25)   
         rely = self.telnet.read_very_eager().decode()
-        print(rely, end='')
-        # print???
 
     def close(self):
         self.telnet.close()
 
 
 if __name__ == '__main__':
-    pass
 # telnet
     # host='10.203.1.231'
     # Port='23'
@@ -113,3 +100,4 @@ if __name__ == '__main__':
     # strout=ssh.exctCMD('df')
     # print(re.findall('1024',strout))
     # ssh.close()
+    pass

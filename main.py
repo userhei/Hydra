@@ -19,26 +19,33 @@ class HydraArgParse():
 
     def argparse_init(self):
         self.parser = argparse.ArgumentParser(prog='max_lun',
-                                              description='test max lun number of VersaRAID-SDS')
-        self.parser.add_argument(
-            '-r',
-            '--run',
-            action="store_true",
-            dest="run_test",
-            help="run auto max lun test")
+                                              description='Test max lun number of VersaRAID-SDS')
+        # self.parser.add_argument(
+        #     '-r',
+        #     '--run',
+        #     action="store_true",
+        #     dest="run_test",
+        #     help="run auto max lun test")
         self.parser.add_argument(
             '-s',
             '--string',
             action="store",
             dest="unique_str",
-            help="the unique string for this test, affects related naming")
+            help="The unique string for this test, affects related naming")
 
     def _storage(self, unique_id, unique_str):
+        '''
+        connect to NetApp Storage
+        Create LUN and Map to VersaPLX
+        '''
         netapp = storage.Storage(unique_id, unique_str)
         netapp.lun_create()
         netapp.lun_map()
 
     def _vplx_drbd(self, unique_id, unique_str):
+        '''
+        xxx
+        '''
         drbd = vplx.VplxDrbd(unique_id, unique_str)
         drbd.discover_new_lun()
         drbd.prepare_config_file()
@@ -46,34 +53,30 @@ class HydraArgParse():
         drbd.drbd_status_verify()
 
     def _vplx_crm(self, unique_id, unique_str):
+        '''
+        xxx
+        '''
         crm = vplx.VplxCrm(unique_id, unique_str)
         crm.crm_cfg()
 
     def _host_test(self, unique_id):
+        '''
+        xxx
+        '''
         host = host_initiator.HostTest(unique_id)
         host.ssh.excute_command('umount /mnt')
-        mount_status = host.format_mount()
-        if mount_status:
-            write_perf = host.write_test()
-            print(f'write speed: {write_perf}')
-            time.sleep(1)
-            read_perf = host.read_test()
-            print(f'read speed: {read_perf}')
-        else:
-            print('mount failed')
-            sys.exit()
+        host.start_test()
+        
 
     def run(self):
         args = self.parser.parse_args()
-        if args.run_test:
-            if args.unique_str:
-                for i in range(45, 51):
-                    self._storage(i, args.unique_str)
-                    self._vplx_drbd(i, args.unique_str)
-                    self._vplx_crm(i, args.unique_str)
-                    self._host_test(i)
-            else:
-                self.parser.print_help()
+        'unique_str'
+        if args.unique_str:
+            for i in range(60, 62):
+                self._storage(i, args.unique_str)
+                self._vplx_drbd(i, args.unique_str)
+                self._vplx_crm(i, args.unique_str)
+                self._host_test(i)
         else:
             self.parser.print_help()
 
