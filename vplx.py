@@ -28,9 +28,9 @@ class VplxDrbd(object):
         if str_out:
             str_out = str_out.decode('utf-8')
             re_vplx_id_path = re.compile(
-                r'''\:(\d*)\].*NETAPP[ 0-9a-zA-Z.]*(/dev/sd[a-z]{1,3})''')
+                r'''\:(\d*)\].*NETAPP[ 0-9a-zA-Z._]*(/dev/sd[a-z]{1,3})''')
             stor_result = re_vplx_id_path.findall(str_out)
-            # print(stor_result)
+            # print(str_out)
             if stor_result:
                 result_dict = dict(stor_result)
                 if str(self.lun_id) in result_dict.keys():
@@ -144,7 +144,7 @@ class VplxCrm(VplxDrbd):
     def _crm_create(self):
         command = f'crm conf primitive {self.lu_name} \
             iSCSILogicalUnit params target_iqn="{self.target_iqn}" \
-            implementation=lio-t lun={self.lun_id} path={self.blk_dev_name} \
+            implementation=lio-t lun={self.lun_id} path="/dev/{self.drbd_device_name}"\
             allowed_initiators="{self.initiator_iqn}" op start timeout=40 interval=0 op stop timeout=40 interval=0 op monitor timeout=40 interval=50 meta target-role=Stopped'
         crm_create = command.encode('utf-8')
         if self.ssh.excute_command(crm_create) is True:
@@ -201,11 +201,4 @@ class VplxCrm(VplxDrbd):
 
 if __name__ == '__main__':
     pass
-    # test_crm = VplxCrm('13', 'test')
-    # if test_crm.discover_new_lun():
-    #     test_crm.prepare_config_file()
-    #     if test_crm.drbd_cfg():
-    #         if test_crm.drbd_status_verify():
-    #             if test_crm.crm_cfg():
-    #                 print('Execute succeed')
-    # test_crm.ssh.close()
+    

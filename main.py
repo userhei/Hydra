@@ -2,9 +2,10 @@
 #  coding: utf-8
 import storage
 import vplx
-import host_initiator as host
+import host_initiator
 import argparse
 import sys
+import time
 
 
 class HydraArgParse():
@@ -12,6 +13,7 @@ class HydraArgParse():
     Hydra project
     parse argument for auto max lun test program
     '''
+
     def __init__(self):
         self.argparse_init()
 
@@ -38,25 +40,24 @@ class HydraArgParse():
 
     def _vplx_drbd(self, unique_id, unique_str):
         drbd = vplx.VplxDrbd(unique_id, unique_str)
+        drbd.discover_new_lun()
         drbd.prepare_config_file()
         drbd.drbd_cfg()
-        
+        drbd.drbd_status_verify()
 
     def _vplx_crm(self, unique_id, unique_str):
         crm = vplx.VplxCrm(unique_id, unique_str)
-        crm.iscisi_lun_create()
-        crm.iscisi_lun_setting()
-        crm.iscisi_lun_start()
+        crm.crm_cfg()
 
     def _host_test(self, unique_id):
-        host = host.HostTest(unique_id)
-        ssh.excute_command('umount /mnt')
-        mount_status = w.format_mount()
+        host = host_initiator.HostTest(unique_id)
+        host.ssh.excute_command('umount /mnt')
+        mount_status = host.format_mount()
         if mount_status:
-            write_perf = w.write_test()
+            write_perf = host.write_test()
             print(f'write speed: {write_perf}')
             time.sleep(1)
-            read_perf = w.read_test()
+            read_perf = host.read_test()
             print(f'read speed: {read_perf}')
         else:
             print('mount failed')
@@ -66,7 +67,7 @@ class HydraArgParse():
         args = self.parser.parse_args()
         if args.run_test:
             if args.unique_str:
-                for i in range(255):
+                for i in range(45, 51):
                     self._storage(i, args.unique_str)
                     self._vplx_drbd(i, args.unique_str)
                     self._vplx_crm(i, args.unique_str)
