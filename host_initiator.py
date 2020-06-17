@@ -18,27 +18,14 @@ class HostTest(object):
         self.ssh = c.ConnSSH(host, port, user, password, timeout)
         self.id = unique_id
 
-    def _list_to_dict(self, arg_list):
-        '''
-        convert :
-        [('0', '/dev/sdb'), ('1', '/dev/sdc')]
-        to :
-        {'0':'/dev/sdb', '1':'/dev/sdc')}
-        '''
-        dic = {}
-        for i in arg_list:
-            dic[i[0]] = i[1]
-        return dic
-
     def _find_device(self, command_result):
-        re_find_id_dev = re.compile(
-            r'\:(\d*)\].*NETAPP[ 0-9a-zA-Z.]*(/dev/sd[a-z]{1,3})')
         # re_find_id_dev = re.compile(
-        #     r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z.]*(/dev/sd[a-z]{1,3})')
+        #     r'\:(\d*)\].*NETAPP[ 0-9a-zA-Z.]*(/dev/sd[a-z]{1,3})')
+        re_find_id_dev = re.compile(
+            r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z.]*(/dev/sd[a-z]{1,3})')
         re_result = re_find_id_dev.findall(command_result)
         # [('0', '/dev/sdb'), ('1', '/dev/sdc')]
         if re_result:
-            # dic_result = self._list_to_dict(re_result)
             dic_result= dict(re_result)
             if str(self.id) in dic_result.keys():
                 dev_path = dic_result[str(self.id)]
@@ -52,7 +39,7 @@ class HostTest(object):
                 if dev_path:
                     return dev_path
                 else:
-                    print("don't find the new LUN from VersaPLX")
+                    print("did not find the new LUN from VersaPLX")
                     sys.exit()
             else:
                 print("command 'lsscsi' failed")
@@ -61,7 +48,7 @@ class HostTest(object):
             print('scan failed')
             sys.exit()
 
-    def _dudge_format(self, arg_bytes):
+    def _judge_format(self, arg_bytes):
         re_done = re.compile(r'done')
         string = arg_bytes.decode('utf-8')
         if len(re_done.findall(string)) == 4:
@@ -71,7 +58,7 @@ class HostTest(object):
         dev_name = self.explore_disk()
         format_cmd = f'mkfs.ext4 {dev_name} -F'
         cmd_result = self.ssh.excute_command(format_cmd)
-        if self._dudge_format(cmd_result):
+        if self._judge_format(cmd_result):
             mount_cmd = f'mount {dev_name} {mount_point}'
             if self.ssh.excute_command(mount_cmd) == True:
                 return True

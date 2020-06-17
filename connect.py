@@ -84,6 +84,7 @@ class ConnTelnet(object):
         time.sleep(2)
         rely = self.telnet.read_very_eager().decode()
         print(rely, end='')
+        # print???
 
     def close(self):
         self.telnet.close()
