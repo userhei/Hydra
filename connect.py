@@ -47,30 +47,30 @@ class ConnSSH(object):
 
 
 class ConnTelnet(object):
-    def __init__(self, host, Port, username, password, timeout):
+    def __init__(self, host, port, username, password, timeout):
         self._host = host
-        self._port = Port
+        self._port = port
         self._username = username
         self._password = password
         self._timeout = timeout
-        self.TN = telnetlib.Telnet()
+        self.telnet = telnetlib.Telnet()
         self._connect()
 
     def _connect(self):
         try:
-            self.TN.open(self._host, self._port)
+            self.telnet.open(self._host, self._port)
         except:
             print('%sconnect fail' % self._host)
             return False
 
-        self.TN.read_until(b'Username:', timeout=1)
-        self.TN.write(b'\n')
-        self.TN.write(self._username.encode() + b'\n')
+        self.telnet.read_until(b'Username:', timeout=1)
+        self.telnet.write(b'\n')
+        self.telnet.write(self._username.encode() + b'\n')
 
-        self.TN.read_until(b'Password:', timeout=1)
-        self.TN.write(self._password.encode() + b'\n')
+        self.telnet.read_until(b'Password:', timeout=1)
+        self.telnet.write(self._password.encode() + b'\n')
 
-        rely = self.TN.read_very_eager().decode()
+        rely = self.telnet.read_very_eager().decode()
         if 'Login invalid' not in rely:
             print('%slogin success' % self._host)
             return True
@@ -79,15 +79,15 @@ class ConnTelnet(object):
             return False
 
     # 定义exctCMD函数,用于执行命令
-    def exctCMD(self, cmd):
-        self.TN.write(cmd.encode().strip() + b'\r')
+    def excute_command(self, cmd):
+        self.telnet.write(cmd.encode().strip() + b'\r')
         time.sleep(2)
-        rely = self.TN.read_very_eager().decode()
+        rely = self.telnet.read_very_eager().decode()
         print(rely, end='')
         # print???
 
     def close(self):
-        self.TN.close()
+        self.telnet.close()
 
 
 if __name__ == '__main__':
@@ -98,10 +98,10 @@ if __name__ == '__main__':
     # username='root'
     # password='Feixi@123'
     # timeout=10
-    # testTN=TNConn(host, Port,username, password, timeout)
-    # testTN._connect()
-    # testTN.exctCMD('lun show')
-    # testTN.close()
+    # test_TN=telnetConn(host, Port,username, password, timeout)
+    # test_TN._connect()
+    # test_TN.exctCMD('lun show')
+    # test_TN.close()
 # ssh
     # host='10.203.1.200'
     # port='22'
