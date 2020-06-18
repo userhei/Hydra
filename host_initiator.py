@@ -4,6 +4,7 @@ import connect as c
 import re
 import sys
 import time
+import sundry as s
 
 vplx_ip = '10.203.1.199'
 host = '10.203.1.200'
@@ -12,15 +13,23 @@ user = 'root'
 password = 'password'
 timeout = 3
 
+re_find_id_dev = r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z._]*(/dev/sd[a-z]{1,3})'
 mount_point = '/mnt'
 
 
 class HostTest(object):
+    '''
+    Format, write, and read iSCSI LUN
+    '''
+
     def __init__(self, unique_id):
         self.ssh = c.ConnSSH(host, port, user, password, timeout)
         self.id = unique_id
 
     def iscsi_login(self):
+        '''
+        Discover iSCSI and login to session
+        '''
         login_cmd = f'iscsiadm -m discovery -t st -p {vplx_ip} -l'
         login_result = self.ssh.excute_command(login_cmd)
         if login_result:
@@ -34,6 +43,9 @@ class HostTest(object):
                 s.pe(f'iscsi login to {vplx_ip} failed')
 
     def find_session(self):
+        '''
+        Execute the command and check up the status of session
+        '''
         session_cmd = 'iscsiadm -m session'
         session_result = self.ssh.excute_command(session_cmd)
         if session_result:
@@ -43,43 +55,54 @@ class HostTest(object):
             if re_result:
                 return True
 
-    def _find_device(self, command_result):
-        re_find_id_dev = re.compile(
-            r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z._]*(/dev/sd[a-z]{1,3})')
-        re_result = re_find_id_dev.findall(command_result)
+    # def _find_device(self, command_result):
+    #     '''
+    #     Use re to find device_path
+    #     '''
+    #     re_find_id_dev = re.compile(
+    #         r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z._]*(/dev/sd[a-z]{1,3})')
+    #     re_result = re_find_id_dev.findall(command_result)
 
-        # [('0', '/dev/sdb'), ('1', '/dev/sdc')]
-        if re_result:
-            dic_result = dict(re_result)
-            if str(self.id) in dic_result.keys():
-                dev_path = dic_result[str(self.id)]
-                return dev_path
+    #     # [('0', '/dev/sdb'), ('1', '/dev/sdc')]
+    #     if re_result:
+    #         dic_result = dict(re_result)
+    #         if str(self.id) in dic_result.keys():
+    #             dev_path = dic_result[str(self.id)]
+    #             return dev_path
 
     def explore_disk(self):
+        '''
+         Scan and get the device path from VersaPLX
+        '''
         if self.ssh.excute_command('/usr/bin/rescan-scsi-bus.sh'):
             lsscsi_result = self.ssh.excute_command('lsscsi')
             if lsscsi_result and lsscsi_result is not True:
-                dev_path = self._find_device(lsscsi_result.decode('utf-8'))
-                # print(dev_path)
+                dev_path = s.find_device(
+                    re_find_id_dev, self.id, lsscsi_result.decode('utf-8'))
                 if dev_path:
                     return dev_path
                 else:
-                    print("did not find the new LUN from VersaPLX")
-                    sys.exit()
+                    s.pe("did not find the new LUN from VersaPLX")
+
             else:
-                print("command 'lsscsi' failed")
-                sys.exit()
+                s.pe("command 'lsscsi' failed")
+
         else:
-            print('scan failed')
-            sys.exit()
+            s.pe('scan failed')
 
     def _judge_format(self, arg_bytes):
+        '''
+        Determine the format status
+        '''
         re_done = re.compile(r'done')
         string = arg_bytes.decode('utf-8')
         if len(re_done.findall(string)) == 4:
             return True
 
-    def format_mount(self,dev_name):
+    def format_mount(self, dev_name):
+        '''
+        Format disk and mount disk
+        '''
         format_cmd = f'mkfs.ext4 {dev_name} -F'
         cmd_result = self.ssh.excute_command(format_cmd)
         if self._judge_format(cmd_result):
@@ -87,13 +110,15 @@ class HostTest(object):
             if self.ssh.excute_command(mount_cmd) == True:
                 return True
             else:
-                print(f"mount {dev_name} to {mount_point} failed")
-                sys.exit()
+                s.pe(f"mount {dev_name} to {mount_point} failed")
+
         else:
-            print("format disk %s failed" % dev_name)
-            sys.exit()
+            s.pe("format disk %s failed" % dev_name)
 
     def _get_dd_perf(self, arg_str):
+        '''
+        Use re to get the speed of test
+        '''
         re_performance = re.compile(r'.*s, ([1-9.]* [A-Z]B/s)')
         string = arg_str.decode('utf-8')
         re_result = re_performance.findall(string)
@@ -101,18 +126,27 @@ class HostTest(object):
         return perf[0]
 
     def write_test(self):
+        '''
+        Execute command for write test
+        '''
         test_cmd = f'dd if=/dev/zero of={mount_point}/t.dat bs=512k count=16'
         test_result = self.ssh.excute_command(test_cmd)
         if test_result:
             return self._get_dd_perf(test_result)
 
     def read_test(self):
+        '''
+        Execute command for read test
+        '''
         test_cmd = f'dd if={mount_point}/t.dat of=/dev/zero bs=512k count=16'
         test_result = self.ssh.excute_command(test_cmd)
         if test_result:
             return self._get_dd_perf(test_result)
 
     def get_test_perf(self):
+        '''
+        Calling method to read&write test
+        '''
         write_perf = self.write_test()
         print(f'write speed: {write_perf}')
         time.sleep(0.5)
@@ -129,6 +163,7 @@ class HostTest(object):
         else:
             s.pe(f'Device {dev_name} mount failed')
 
+
 if __name__ == "__main__":
     test = HostTest(21)
     command_result = '''[2:0:0:0]    cd/dvd  NECVMWar VMware SATA CD00 1.00  /dev/sr0
@@ -136,4 +171,3 @@ if __name__ == "__main__":
     [33:0:0:15]  disk    LIO-ORG  res_lun_15       4.0   /dev/sdb 
     [33:0:0:21]  disk    LIO-ORG  res_luntest_21   4.0   /dev/sdc '''
     print(command_result)
-    test._find_device(str(command_result))
