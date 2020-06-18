@@ -7,6 +7,10 @@ import sundry as s
 
 
 class ConnSSH(object):
+    '''
+    ssh connect to VersaPLX
+    '''
+
     def __init__(self, host, port, username, password, timeout):
         self._host = host
         self._port = port
@@ -47,6 +51,10 @@ class ConnSSH(object):
 
 
 class ConnTelnet(object):
+    '''
+    telnet connect to NetApp 
+    '''
+
     def __init__(self, host, port, username, password, timeout):
         self._host = host
         self._port = port
@@ -71,7 +79,7 @@ class ConnTelnet(object):
     # 定义exctCMD函数,用于执行命令
     def excute_command(self, cmd):
         self.telnet.write(cmd.encode().strip() + b'\r')
-        time.sleep(0.25)   
+        time.sleep(0.25)
         rely = self.telnet.read_very_eager().decode()
 
     def close(self):
@@ -79,7 +87,7 @@ class ConnTelnet(object):
 
 
 if __name__ == '__main__':
-# telnet
+    # telnet
     # host='10.203.1.231'
     # Port='23'
     # username='root'
@@ -89,7 +97,7 @@ if __name__ == '__main__':
     # test_TN._connect()
     # test_TN.exctCMD('lun show')
     # test_TN.close()
-# ssh
+    # ssh
     # host='10.203.1.200'
     # port='22'
     # username='root'

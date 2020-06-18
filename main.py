@@ -35,7 +35,7 @@ class HydraArgParse():
 
     def _storage(self, unique_id, unique_str):
         '''
-        connect to NetApp Storage
+        Connect to NetApp Storage
         Create LUN and Map to VersaPLX
         '''
         netapp = storage.Storage(unique_id, unique_str)
@@ -44,7 +44,8 @@ class HydraArgParse():
 
     def _vplx_drbd(self, unique_id, unique_str):
         '''
-        xxx
+        Connect to VersaPLX
+        Go on DRDB resource configuration
         '''
         drbd = vplx.VplxDrbd(unique_id, unique_str)
         drbd.discover_new_lun()
@@ -54,25 +55,28 @@ class HydraArgParse():
 
     def _vplx_crm(self, unique_id, unique_str):
         '''
-        xxx
+        Connect to VersaPLX
+        Go on crm configuration
         '''
         crm = vplx.VplxCrm(unique_id, unique_str)
         crm.crm_cfg()
 
     def _host_test(self, unique_id):
         '''
-        xxx
+        Connect to host
+        Umount and start to format, write, and read iSCSI LUN
         '''
         host = host_initiator.HostTest(unique_id)
         host.ssh.excute_command('umount /mnt')
         host.start_test()
-        
 
     def run(self):
         args = self.parser.parse_args()
-        'unique_str'
+        '''
+        unique_str: The unique string for this test, affects related naming
+        '''
         if args.unique_str:
-            for i in range(60, 62):
+            for i in range(83, 85):
                 self._storage(i, args.unique_str)
                 self._vplx_drbd(i, args.unique_str)
                 self._vplx_crm(i, args.unique_str)
