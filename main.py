@@ -76,7 +76,8 @@ class HydraArgParse():
         unique_str: The unique string for this test, affects related naming
         '''
         if args.unique_str:
-            for i in range(83, 85):
+            for i in range(109, 111):
+                print(f'\n======*** Start working for ID {i} ***======')
                 self._storage(i, args.unique_str)
                 self._vplx_drbd(i, args.unique_str)
                 self._vplx_crm(i, args.unique_str)
