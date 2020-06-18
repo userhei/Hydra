@@ -35,10 +35,10 @@ class VplxDrbd(object):
                 result_dict = dict(stor_result)
                 if str(self.lun_id) in result_dict.keys():
                     self.blk_dev_name = result_dict[str(self.lun_id)]
-                    print('Query to map new LUN succeeded')
+                    print(f'Discovered new lun from NetApp(LUN ID: {self.lun_id})')
                     return True
                 else:
-                    print('LUN does not exist')
+                    print('New lun from NetApp(LUN ID: {self.lun_id}) not found')
                     sys.exit()
             else:
                 print('check NETAPP failed')

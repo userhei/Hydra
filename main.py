@@ -72,7 +72,7 @@ class HydraArgParse():
         args = self.parser.parse_args()
         'unique_str'
         if args.unique_str:
-            for i in range(60, 62):
+            for i in range(63, 65):
                 self._storage(i, args.unique_str)
                 self._vplx_drbd(i, args.unique_str)
                 self._vplx_crm(i, args.unique_str)

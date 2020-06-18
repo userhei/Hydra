@@ -4,6 +4,7 @@ import time
 import telnetlib
 import sys
 import sundry as s
+import pprint
 
 
 class ConnSSH(object):
@@ -80,11 +81,22 @@ class ConnTelnet(object):
 
 if __name__ == '__main__':
 # telnet
-    # host='10.203.1.231'
-    # Port='23'
-    # username='root'
-    # password='Feixi@123'
-    # timeout=10
+    host='10.203.1.231'
+    port='22'
+    username='root'
+    password='Feixi@123'
+    timeout=5
+    ssh=ConnSSH(host, port, username, password, timeout)
+    strout=ssh.excute_command('?')
+    w = strout.decode('utf-8')
+    print(type(w))
+    print(w.split('\n'))
+    pprint.pprint(w)
+    time.sleep(2)
+    strout=ssh.excute_command('lun show -m')
+    pprint.pprint(strout)
+
+
     # test_TN=telnetConn(host, Port,username, password, timeout)
     # test_TN._connect()
     # test_TN.exctCMD('lun show')
