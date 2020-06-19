@@ -74,6 +74,7 @@ class HostTest(object):
          Scan and get the device path from VersaPLX
         '''
         if self.ssh.excute_command('/usr/bin/rescan-scsi-bus.sh'):
+            time.sleep(0.5)
             lsscsi_result = self.ssh.excute_command('lsscsi')
         else:
             s.pe(f'Scan new LUN failed on VersaPLX')
