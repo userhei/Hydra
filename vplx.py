@@ -51,6 +51,7 @@ class VplxDrbd(object):
         '''
         Scan and find the disk from NetApp
         '''
+
         lsscsi_result = None
         if self.ssh.excute_command('/usr/bin/rescan-scsi-bus.sh'):
             lsscsi_result = self.ssh.excute_command('lsscsi')
@@ -84,7 +85,7 @@ class VplxDrbd(object):
         #         continue
         #     else:
         #         s.pe('fail to prepare drbd config file..')
-
+        config_file_name = f'{self.res_name}.res'
         for i in range(len(context)):
             if i == 0:
                 echo_result = self.ssh.excute_command(

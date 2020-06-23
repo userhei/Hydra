@@ -35,7 +35,7 @@ class ConnSSH(object):
                                  timeout=self._timeout)
             # 如何验证SSH连接成功
             # log : SSH_connect_result [T/F]
-            self.logger.write_to_log('SSH','SSH_connect','','SSH SUCCESS')
+            self.logger.write_to_log('SSH','SSH_connect_result','','SSH SUCCESS')
             self.SSHConnection = objSSHClient
         except Exception as e:
             # log : Error [(print)]
@@ -44,25 +44,26 @@ class ConnSSH(object):
             s.pe(f'Connect to {self._host} failed with error: {e}')
 
     def excute_command(self, command):
+        '1, o and data; 2, x and err; 3, 0 and no_data'
         self.logger.write_to_log('SSH','ssh_ex_cmd','',command)
         stdin, stdout, stderr = self.SSHConnection.exec_command(command) # ？
         data = stdout.read()
-        self.logger.write_to_log('SSH','ssh_ex_cmd_result_stdout',command,data)
+        # self.logger.write_to_log('SSH','ssh_ex_cmd_result_stdout',command,data)
         if len(data) > 0:
-            self.logger.write_to_log('SSH','ssh_ex_cmd_return',command,data)
-            return data
+            self.logger.write_to_log('SSH','ssh_ex_cmd_return',command,(1,data))
+            return (1, data)
 
         err = stderr.read()
-        self.logger.write_to_log('SSH','ssh_ex_cmd_result_stderr',command,err)
+        # self.logger.write_to_log('SSH','ssh_ex_cmd_result_stderr',command,err)
         if len(err) > 0:
             print(err.strip())
             self.logger.write_to_log('SSH','print','',(err.strip()))
-            self.logger.write_to_log('SSH','ssh_ex_cmd_return',command,err)
-            return err
+            self.logger.write_to_log('SSH','ssh_ex_cmd_return',command,(2, err))
+            return (2, err)
 
         if data == b'':
-            self.logger.write_to_log('SSH', 'ssh_ex_cmd_return', command, True)
-            return True
+            self.logger.write_to_log('SSH', 'ssh_ex_cmd_return', command, (3, ''))
+            return (3, '')
 
     def close(self):
         self.logger.write_to_log('SSH','ssh_close','','start')
@@ -117,6 +118,7 @@ class ConnTelnet(object):
         self.logger.write_to_log('Telnet','telnet_ex_cmd','','time_sleep:0.25')
         time.sleep(0.25)
         rely = self.telnet.read_very_eager().decode()# ?
+        # self.logger.write_to_log('Telnet',)
 
     def close(self):
         self.logger.write_to_log('Telnet','Telnet_close','','start')

@@ -25,7 +25,7 @@ class GetDiskPath(object):
         '''
         Use re to get the blk_dev_name through lun_id
         '''
-        self.logger.write_to_log('GetDiskPath','','find_device',self.logger.host)
+        self.logger.write_to_log('GetDiskPath','host','find_device',self.logger.host)
         re_find_path_via_id = re.compile(self.re_string)
         self.logger.write_to_log('GetDiskPath','regular_before','find_device',self.lsscsi_result)
         re_result = re_find_path_via_id.findall(self.lsscsi_result)

@@ -79,6 +79,7 @@ class HydraArgParse():
         host.ssh.excute_command('umount /mnt')
         host.start_test()
 
+    @sundry.record_exception
     def run(self):
         if sys.argv:
             path = sundry.get_path()
@@ -104,9 +105,9 @@ class HydraArgParse():
             for i in range(id_start, id_end):
                 # 新的logger对象（新的事务id）
                 print(f'\n======*** Start working for ID {i} ***======')
-                self._storage(i, args.unique_str)
-                self._vplx_drbd(i, args.unique_str)
-                self._vplx_crm(i, args.unique_str)
+                self._storage(i, args.uniq_str)
+                self._vplx_drbd(i, args.uniq_str)
+                self._vplx_crm(i, args.uniq_str)
                 time.sleep(1.5)
                 self._host_test(i)
         else:

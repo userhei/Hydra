@@ -33,6 +33,7 @@ class HostTest(object):
         '''
         login_cmd = f'iscsiadm -m discovery -t st -p {vplx_ip} -l'
         login_result = self.ssh.excute_command(login_cmd)
+
         if login_result:
             login_result = login_result.decode('utf-8')
             self.logger.write_to_log('HostTest','regular_before','iscsi_login',login_result)
@@ -61,7 +62,7 @@ class HostTest(object):
             re_result = re_session.findall(session_result)
             self.logger.write_to_log('HostTest', 'regular_after', 'find_session', re_result)
             if re_result:
-                self.logger.write_to_log('HostTest','re_result_to_return','find_session')
+                self.logger.write_to_log('HostTest','return','find_session',True)
                 return True
 
     # def _find_device(self, command_result):
@@ -101,8 +102,8 @@ class HostTest(object):
         '''
         re_done = re.compile(r'done')
         string = arg_bytes.decode('utf-8')
-        self.logger.write_to_log.write('HostTest','regular_before','_judge_format',string)
-        self.logger.write_to_log.write('HostTest','regular_after','_judge_format',re_done.findall(string))
+        self.logger.write_to_log('HostTest','regular_before','_judge_format',string)
+        self.logger.write_to_log('HostTest','regular_after','_judge_format',re_done.findall(string))
         if len(re_done.findall(string)) == 4:
             self.logger.write_to_log('HostTest','return','_judge_format',True)
             return True
@@ -182,7 +183,7 @@ class HostTest(object):
         self.logger.write_to_log('HostTest', 'print', 'get_test_perf', (f'read speed: {read_perf}'))
 
     def start_test(self):
-        if not self.find_session:
+        if not self.find_session():
             self.iscsi_login()
         dev_name = self.explore_disk()
         mount_status = self.format_mount(dev_name)
