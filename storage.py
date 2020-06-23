@@ -14,9 +14,10 @@ class Storage:
     Create LUN and map to VersaPLX
     '''
 
-    def __init__(self, unique_id, unique_name):
+    def __init__(self, unique_id, unique_name,logger):
+        self.logger = logger
         self.telnet_conn = connect.ConnTelnet(
-            host, port, username, password, timeout)
+            host, port, username, password, timeout,logger)
         # print('Connect to storage NetApp')
         self.lun_name = f'{unique_name}_{unique_id}'
         self.lun_id = unique_id
@@ -28,6 +29,7 @@ class Storage:
         lc_cmd = f'lun create -s 10m -t linux /vol/esxi/{self.lun_name}'
         self.telnet_conn.excute_command(lc_cmd)
         print('Create LUN successful on NetApp Storage')
+        self.logger.write_to_log('Storage','print','lun_create',('Create LUN successful on NetApp Storage'))
 
     def lun_map(self):
         '''
@@ -36,6 +38,7 @@ class Storage:
         lm_cmd = f'lun map /vol/esxi/{self.lun_name} hydra {self.lun_id}'
         self.telnet_conn.excute_command(lm_cmd)
         print('LUN map successful on NetApp Storage')
+        self.logger.write_to_log('Storage', 'print', 'lun_map', ('LUN map successful on NetApp Storage'))
 
     def lun_create_verify(self):
         pass
