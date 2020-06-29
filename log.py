@@ -25,13 +25,12 @@ class MyLoggerAdapter(logging.LoggerAdapter):
 
 
 class Log(object):
-
-    fmt = logging.Formatter("%(asctime)s [%(username)s] [%(transaction_id)s] [%(type)s] [%(describe1)s] [%(describe2)s] [%(data)s]",datefmt = '[%Y/%m/%d %H:%M:%S]')
+    # 
+    fmt = logging.Formatter("%(asctime)s [%(transaction_id)s] [%(type)s] [%(describe1)s] [%(describe2)s] [%(data)s]",datefmt = '[%Y/%m/%d %H:%M:%S]')
     handler_input = logging.handlers.RotatingFileHandler(filename='Hydra_log.log',mode='a',maxBytes=10*1024*1024,backupCount=5)
     handler_input.setFormatter(fmt)
 
-    def __init__(self,username,transaction_id):
-        self.username = username
+    def __init__(self,transaction_id):
         self.transaction_id = transaction_id
         self.host = None
 
@@ -40,7 +39,6 @@ class Log(object):
         logger_hydra.addHandler(self.handler_input)
         logger_hydra.setLevel(logging.DEBUG)
         extra_dict = {
-            "username": "USERNAME",
             "transaction_id":"",
             "type": "TYPE",
             "describe1": "",
@@ -58,7 +56,6 @@ class Log(object):
         logger_hydra.debug(
             '',
             extra={
-                'username': self.username,
                 'transaction_id': self.transaction_id, #
                 'type': type,
                 'describe1': describe1,

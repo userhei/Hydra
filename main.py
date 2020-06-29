@@ -17,9 +17,8 @@ class HydraArgParse():
     '''
 
     def __init__(self):
-        self.username = sundry.get_username()
         self.transaction_id = sundry.get_transaction_id()
-        self.logger = log.Log(self.username,self.transaction_id)
+        self.logger = log.Log(self.transaction_id)
         self.argparse_init()
 
     def argparse_init(self):
@@ -84,7 +83,7 @@ class HydraArgParse():
         if sys.argv:
             path = sundry.get_path()
             cmd = ' '.join(sys.argv)
-            self.logger.write_to_log('user_input', path, '', cmd)
+            self.logger.write_to_log('DATA', 'input', 'user_input', cmd)
 
         args = self.parser.parse_args()
         '''
@@ -96,14 +95,18 @@ class HydraArgParse():
                 if len(id_range) == 2:
                     id_start, id_end = int(id_range[0]), int(id_range[1])
                 else:
+                    self.logger.write_to_log('INFO','info','','print_help')
                     self.parser.print_help()
                     sys.exit()
             else:
+                self.logger.write_to_log('INFO','info','','print_help')
                 self.parser.print_help()
                 sys.exit()
 
             for i in range(id_start, id_end):
                 # 新的logger对象（新的事务id）
+                self.transaction_id = sundry.get_transaction_id()
+                self.logger = log.Log(self.transaction_id)
                 print(f'\n======*** Start working for ID {i} ***======')
                 self._storage(i, args.uniq_str)
                 self._vplx_drbd(i, args.uniq_str)
@@ -111,7 +114,7 @@ class HydraArgParse():
                 time.sleep(1.5)
                 self._host_test(i)
         else:
-            self.logger.write_to_log('HydraArgParse','print_help','','')
+            self.logger.write_to_log('INFO','info','','print_help')
             self.parser.print_help()
 
 
