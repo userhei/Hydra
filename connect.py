@@ -15,6 +15,7 @@ class ConnSSH(object):
 
     def __init__(self, host, port, username, password, timeout,logger):
         self.logger = logger
+        self.logger.d1 = host
         self._host = host
         self._port = port
         self._timeout = timeout
@@ -46,23 +47,24 @@ class ConnSSH(object):
 
     def execute_command(self, command):
         '1, o and data; 2, x and err; 3, 0 and no_data'
+
         self.logger.write_to_log('DATA','input','cmd',command)
         stdin, stdout, stderr = self.SSHConnection.exec_command(command)
         data = stdout.read()
         if len(data) > 0:
             self.logger.write_to_log('DATA','output',command,(1,data))
-            return (data)
+            return {'sts':1, 'rst':data}
 
         err = stderr.read()
         if len(err) > 0:
             print(err.strip())
             self.logger.write_to_log('INFO','info','',(err.strip()))
             self.logger.write_to_log('DATA','output',command,(2, err))
-            return (err)
+            return {'sts':0, 'rst':err}
 
         if data == b'':
             self.logger.write_to_log('DATA','output',command,(3, ''))
-            return True
+            return {'sts':1, 'rst':data}
 
     def close(self):
         self.SSHConnection.close()

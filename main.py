@@ -41,28 +41,22 @@ class HydraArgParse():
             dest="id_range",
             help='The ID range of test, split with ","')
 
-    def _storage(self, unique_id, unique_str):
+    def _storage(self):
         '''
         Connect to NetApp Storage
         Create LUN and Map to VersaPLX
         '''
-        storage.ID = unique_id
-        storage.STRING = unique_str
         netapp = storage.Storage(self.logger)
         netapp.lun_create()
         netapp.lun_map()
-
-    def _vplx_find_disk(parameter_list):
-        pass
 
     def _vplx_drbd(self, unique_id, unique_str):
         '''
         Connect to VersaPLX
         Go on DRDB resource configuration
         '''
-
         drbd = vplx.VplxDrbd(self.logger)
-        drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
+        # drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
         drbd.prepare_config_file() # 创建配置文件
         drbd.drbd_cfg() # run
         drbd.drbd_status_verify() # 验证有没有启动（UptoDate）
@@ -72,7 +66,7 @@ class HydraArgParse():
         Connect to VersaPLX
         Go on crm configuration
         '''
-        crm = vplx.VplxCrm(unique_id, unique_str,self.logger)
+        crm = vplx.VplxCrm(self.logger)
         crm.crm_cfg()
 
     def _host_test(self, unique_id):
@@ -80,7 +74,6 @@ class HydraArgParse():
         Connect to host
         Umount and start to format, write, and read iSCSI LUN
         '''
-        host_initiator.ID = unique_id
         host = host_initiator.HostTest(self.logger)
         host.ssh.execute_command('umount /mnt')
         host.start_test()
@@ -112,16 +105,27 @@ class HydraArgParse():
 
             for i in range(id_start, id_end):
                 # 新的logger对象（新的事务id）
-                vplx.ID = unique_id
-                vplx.STRING = unique_str
                 self.transaction_id = sundry.get_transaction_id()
                 self.logger = log.Log(self.transaction_id)
-                print(f'\n======*** Start working for ID {i} ***======')
+                
+                storage.ID = unique_id
+                storage.STRING = unique_str
                 self._storage()
+                
+                vplx.ID = unique_id
+                vplx.STRING = unique_str
                 self._vplx_drbd()
                 self._vplx_crm()
+                
                 time.sleep(1.5)
-                self._host_test(i)
+                host_initiator.ID = unique_id
+                self._host_test()
+                print(f'\n======*** Start working for ID {i} ***======')
+
+                
+                
+                
+                
         else:
             self.logger.write_to_log('INFO','info','','print_help')
             self.parser.print_help()
