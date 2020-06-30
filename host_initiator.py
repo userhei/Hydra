@@ -33,7 +33,7 @@ class HostTest(object):
         '''
         self.logger.write_to_log('INFO','info','',f'start to discover iscsi and login to {vplx_ip}')
         login_cmd = f'iscsiadm -m discovery -t st -p {vplx_ip} -l'
-        login_result = self.ssh.excute_command(login_cmd)
+        login_result = self.ssh.execute_command(login_cmd)
 
         if login_result:
             login_result = login_result.decode('utf-8')
@@ -53,7 +53,7 @@ class HostTest(object):
         '''
         self.logger.write_to_log('INFO', 'info', '', 'start to execute the command and check up the status of session')
         session_cmd = 'iscsiadm -m session'
-        session_result = self.ssh.excute_command(session_cmd)
+        session_result = self.ssh.execute_command(session_cmd)
         if session_result:
             session_result = session_result.decode('utf-8')
             re_session = re.compile(f'tcp:.*({vplx_ip}):.*')
@@ -85,9 +85,9 @@ class HostTest(object):
         '''
         self.logger.write_to_log('INFO','info','','start to explore_disk')
         lsscsi_result = None
-        if self.ssh.excute_command('/usr/bin/rescan-scsi-bus.sh'):
+        if self.ssh.execute_command('/usr/bin/rescan-scsi-bus.sh'):
             time.sleep(0.5)
-            lsscsi_result = self.ssh.excute_command('lsscsi') # 什么情况下是True
+            lsscsi_result = self.ssh.execute_command('lsscsi') # 什么情况下是True
         else:
             s.pwe(self.logger,f'Scan new LUN failed on VersaPLX')
         re_find_id_dev = r'\:(\d*)\].*LIO-ORG[ 0-9a-zA-Z._]*(/dev/sd[a-z]{1,3})'
@@ -114,10 +114,10 @@ class HostTest(object):
         '''
         self.logger.write_to_log('INFO','info','',f'start to format disk {dev_name} and mount disk {dev_name}')
         format_cmd = f'mkfs.ext4 {dev_name} -F'
-        cmd_result = self.ssh.excute_command(format_cmd)
+        cmd_result = self.ssh.execute_command(format_cmd)
         if self._judge_format(cmd_result):
             mount_cmd = f'mount {dev_name} {mount_point}'
-            if self.ssh.excute_command(mount_cmd) == True:
+            if self.ssh.execute_command(mount_cmd) == True:
                 #self.logger.write_to_log('HostTest', 'return', 'format_mount', True)
                 return True
             else:
@@ -148,7 +148,7 @@ class HostTest(object):
         '''
         self.logger.write_to_log('INFO','info','','start to execute command for write test')
         test_cmd = f'dd if=/dev/zero of={mount_point}/t.dat bs=512k count=16'
-        test_result = self.ssh.excute_command(test_cmd)
+        test_result = self.ssh.execute_command(test_cmd)
         time.sleep(0.5)
         if test_result:
             result = self._get_dd_perf(test_result)
@@ -161,7 +161,7 @@ class HostTest(object):
         '''
         self.logger.write_to_log('INFO','info','','start to execute command for read test')
         test_cmd = f'dd if={mount_point}/t.dat of=/dev/zero bs=512k count=16'
-        test_result = self.ssh.excute_command(test_cmd)
+        test_result = self.ssh.execute_command(test_cmd)
         if test_result:
             result = self._get_dd_perf(test_result)
             # self.logger.write_to_log('HostTest', 'return', 'read_test',result)

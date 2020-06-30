@@ -46,16 +46,22 @@ class HydraArgParse():
         Connect to NetApp Storage
         Create LUN and Map to VersaPLX
         '''
-        netapp = storage.Storage(unique_id, unique_str,self.logger)
+        storage.ID = unique_id
+        storage.STRING = unique_str
+        netapp = storage.Storage(self.logger)
         netapp.lun_create()
         netapp.lun_map()
+
+    def _vplx_find_disk(parameter_list):
+        pass
 
     def _vplx_drbd(self, unique_id, unique_str):
         '''
         Connect to VersaPLX
         Go on DRDB resource configuration
         '''
-        drbd = vplx.VplxDrbd(unique_id, unique_str,self.logger)
+
+        drbd = vplx.VplxDrbd(self.logger)
         drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
         drbd.prepare_config_file() # 创建配置文件
         drbd.drbd_cfg() # run
@@ -74,8 +80,9 @@ class HydraArgParse():
         Connect to host
         Umount and start to format, write, and read iSCSI LUN
         '''
-        host = host_initiator.HostTest(unique_id,self.logger)
-        host.ssh.excute_command('umount /mnt')
+        host_initiator.ID = unique_id
+        host = host_initiator.HostTest(self.logger)
+        host.ssh.execute_command('umount /mnt')
         host.start_test()
 
     @sundry.record_exception
@@ -105,12 +112,14 @@ class HydraArgParse():
 
             for i in range(id_start, id_end):
                 # 新的logger对象（新的事务id）
+                vplx.ID = unique_id
+                vplx.STRING = unique_str
                 self.transaction_id = sundry.get_transaction_id()
                 self.logger = log.Log(self.transaction_id)
                 print(f'\n======*** Start working for ID {i} ***======')
-                self._storage(i, args.uniq_str)
-                self._vplx_drbd(i, args.uniq_str)
-                self._vplx_crm(i, args.uniq_str)
+                self._storage()
+                self._vplx_drbd()
+                self._vplx_crm()
                 time.sleep(1.5)
                 self._host_test(i)
         else:

@@ -22,6 +22,7 @@ class ConnSSH(object):
         self._password = password
         self.SSHConnection = None
         self._connect()
+        print('init.......')
 
 
     def _connect(self):
@@ -43,7 +44,7 @@ class ConnSSH(object):
             self.logger.write_to_log('INFO', 'error', '', (str(traceback.format_exc())))
             s.pwe(self.logger,f'Connect to {self._host} failed with error: {e}')
 
-    def excute_command(self, command):
+    def execute_command(self, command):
         '1, o and data; 2, x and err; 3, 0 and no_data'
         self.logger.write_to_log('DATA','input','cmd',command)
         stdin, stdout, stderr = self.SSHConnection.exec_command(command)
@@ -107,7 +108,7 @@ class ConnTelnet(object):
             s.pwe(self.logger,f'Connect to {self._host} failed with error: {e}')
 
     # 定义exctCMD函数,用于执行命令
-    def excute_command(self, cmd):
+    def execute_command(self, cmd):
         # log: NetApp_ex_cmd
         self.logger.write_to_log('DATA','input','cmd',cmd.encode().strip() + b'\r')
         self.telnet.write(cmd.encode().strip() + b'\r')
@@ -129,13 +130,13 @@ if __name__ == '__main__':
     password='Feixi@123'
     timeout=5
     ssh=ConnSSH(host, port, username, password, timeout)
-    strout=ssh.excute_command('?')
+    strout=ssh.execute_command('?')
     w = strout.decode('utf-8')
     print(type(w))
     print(w.split('\n'))
     pprint.pprint(w)
     time.sleep(2)
-    strout=ssh.excute_command('lun show -m')
+    strout=ssh.execute_command('lun show -m')
     pprint.pprint(strout)
 
 
