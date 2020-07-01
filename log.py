@@ -62,10 +62,9 @@ class Log(object):
         logger_hydra.debug(
             '',
             extra={
-                # 'transaction_id': self.transaction_id, #
-                # 'type': type,
-                # 'describe1': describe1,
-                # 'describe2': describe2,
-                # 'data': data}
-                
-                })
+                'transaction_id': self.transaction_id, #
+                'type': type,
+                'describe1': describe1,
+                'describe2': describe2,
+                'data': data}
+                )

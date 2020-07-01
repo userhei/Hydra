@@ -39,12 +39,11 @@ class HydraArgParse():
             '-id',
             action="store",
             dest="id_range",
-            help='The ID range of test, split with ","')
+            help='ID or ID range(split with ",")')
 
     def _storage(self):
         '''
-        Connect to NetApp Storage
-        Create LUN and Map to VersaPLX
+        Connect to NetApp Storage, Create LUN and Map to VersaPLX
         '''
         netapp = storage.Storage(self.logger)
         netapp.lun_create()
@@ -52,8 +51,7 @@ class HydraArgParse():
 
     def _vplx_drbd(self):
         '''
-        Connect to VersaPLX
-        Go on DRDB resource configuration
+        Connect to VersaPLX, Config DRDB resource
         '''
         drbd = vplx.VplxDrbd(self.logger)
         # drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
@@ -63,8 +61,7 @@ class HydraArgParse():
 
     def _vplx_crm(self):
         '''
-        Connect to VersaPLX
-        Go on crm configuration
+        Connect to VersaPLX, Config iSCSI Target
         '''
         crm = vplx.VplxCrm(self.logger)
         crm.crm_cfg()
@@ -81,7 +78,9 @@ class HydraArgParse():
     def execute(self, id, string):
         self.transaction_id = sundry.get_transaction_id()
         self.logger = log.Log(self.transaction_id)
+
         print(f'\n======*** Start working for ID {id} ***======')
+
         storage.ID = id
         storage.STRING = string
         self._storage()
@@ -90,8 +89,8 @@ class HydraArgParse():
         vplx.STRING = string
         self._vplx_drbd()
         self._vplx_crm()
-        
         time.sleep(1.5)
+        
         host_initiator.ID = id
         self._host_test()
 
@@ -103,49 +102,23 @@ class HydraArgParse():
             # self.logger.write_to_log('DATA', 'input', 'user_input', cmd)
             # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
             # [time],[transaction_id],[s],[DATA],[input],[user_input],[cmd],[f{cmd}]
-            
-
 
         args = self.parser.parse_args()
-        '''
-        uniq_str: The unique string for this test, affects related naming
-        '''
+
+        # uniq_str: The unique string for this test, affects related naming
         if args.uniq_str:
             ids = args.id_range.split(',')
             if len(ids) == 1:
-                self.execute(int(ids[0]),args.uniq_str)
+                self.execute(int(ids[0]), args.uniq_str)
             elif len(ids) == 2:
                 id_start, id_end = int(ids[0]), int(ids[1])
                 for i in range(id_start, id_end):
-                    self.execute(i,args.uniq_str)
+                    self.execute(i, args.uniq_str)
             else:
-                print('help')
-            # if len(args.id_range) > 1:
-            #     id_range = args.id_range
-            #     if len(id_range) == 2:
-            #         id_start, id_end = int(id_range[0]), int(id_range[1])
-            #     else:
-            #         self.logger.write_to_log('INFO','info','','print_help')
-            #         self.parser.print_help()
-            #         sys.exit()
-            # if len(args.id_range) = 1:
-            #     id_start = 
-            # else:
-            #     self.logger.write_to_log('INFO','info','','print_help')
-            #     self.parser.print_help()
-            #     sys.exit()
+                self.parser.print_help()
 
-            # for i in range(id_start, id_end):
-                # 新的logger对象（新的事务id）
-                
-                
-
-                
-                
-                
-                
         else:
-            self.logger.write_to_log('INFO','info','','print_help')
+            # self.logger.write_to_log('INFO','info','','print_help') 
             self.parser.print_help()
 
 

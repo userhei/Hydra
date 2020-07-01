@@ -102,21 +102,21 @@ class ConnTelnet(object):
 
     def _connect(self):
         try:
-            self.logger.write_to_log('INFO','info','','start to connect VersaPLX via telnet')
+            # self.logger.write_to_log('INFO','info','','start to connect VersaPLX via telnet')
             # log : telnet_open
             self.telnet.open(self._host, self._port)
-            self.logger.write_to_log('DATA', 'input', 'telnet_open', (self._host, self._port))
+            # self.logger.write_to_log('DATA', 'input', 'telnet_open', (self._host, self._port))
             # log: telnet_open_result 这个有没有结果的
             # log : username
             date_read1 =  self.telnet.read_until(b'Username:', timeout=1)
-            self.logger.write_to_log('DATA','output','telnet_read_until',date_read1)
-            self.logger.write_to_log('DATA','input','telnet_write',self._username.encode() + b'\n')
+            # self.logger.write_to_log('DATA','output','telnet_read_until',date_read1)
+            # self.logger.write_to_log('DATA','input','telnet_write',self._username.encode() + b'\n')
             self.telnet.write(self._username.encode() + b'\n')
             # 写入之后的结果怎么判断，
 
             date_read2 = self.telnet.read_until(b'Password:', timeout=1)
-            self.logger.write_to_log('DATA','output','telnet_read_until',date_read2)
-            self.logger.write_to_log('DATA','input','telnet_write',self._password.encode() + b'\n')
+            # self.logger.write_to_log('DATA','output','telnet_read_until',date_read2)
+            # self.logger.write_to_log('DATA','input','telnet_write',self._password.encode() + b'\n')
             self.telnet.write(self._password.encode() + b'\n')
 
         except Exception as e:
