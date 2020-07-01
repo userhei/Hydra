@@ -11,6 +11,7 @@ username = 'root'
 password = 'Feixi@123'
 timeout = 3
 
+# [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
 
 class Storage:
     '''
@@ -23,6 +24,7 @@ class Storage:
             host, port, username, password, timeout,logger)
         # print('Connect to storage NetApp')
         self.lun_name = f'{STRING}_{ID}'
+        # [time],[transaction_id],[s],[INFO],[info],[start],[d2],[f'']
 
 
     def lun_create(self):
@@ -30,10 +32,15 @@ class Storage:
         Create LUN with 10M bytes in size
         '''
         # self.logger.write_to_log('INFO','info','',f'start to create lun {self.lun_name}')
+        info_msg = f'create lun, name: {self.lun_name}'
+        # [time],[transaction_id],[s],[INFO],[info],[start],[d2],[info_msg]
         lc_cmd = f'lun create -s 10m -t linux /vol/esxi/{self.lun_name}'
+        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        
         self.telnet_conn.execute_command(lc_cmd)
         print('Create LUN successful on NetApp Storage')
         # self.logger.write_to_log('INFO','info','',('Create LUN successful on NetApp Storage'))
+        # [time],[transaction_id],[s],[INFO],[info],[finish],[d2],[f'create lun, name: {self.lun_name}']
 
     def lun_map(self):
         '''

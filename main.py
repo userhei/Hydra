@@ -100,7 +100,11 @@ class HydraArgParse():
         if sys.argv:
             path = sundry.get_path()
             cmd = ' '.join(sys.argv)
-            self.logger.write_to_log('DATA', 'input', 'user_input', cmd)
+            # self.logger.write_to_log('DATA', 'input', 'user_input', cmd)
+            # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+            # [time],[transaction_id],[s],[DATA],[input],[user_input],[cmd],[f{cmd}]
+            
+
 
         args = self.parser.parse_args()
         '''

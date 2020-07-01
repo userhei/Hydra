@@ -7,6 +7,7 @@ import sys
 import os
 import re
 import log
+import traceback
 
 host = '10.203.1.199'
 port = 22
@@ -45,8 +46,16 @@ class c(object):
         init_ssh()
         print(SSH.execute_command('ls /bin'))
 
+
+def e():
+    try:
+        2/0
+    except Exception as e:
+        print(e)
+        print('----')
+        print(str(traceback.format_exc()))
+
 if __name__ == "__main__":
-    f()
-    d()
-    c()
+    e()
     pass
+

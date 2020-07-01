@@ -68,7 +68,8 @@ class VplxDrbd(object):
         self.res_name = f'res_{STRING}_{ID}'
         global DRBD_DEV_NAME
         DRBD_DEV_NAME = f'drbd{ID}'
-
+        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        #start 
         #log INF:info:start to config drbd resource {r_name}
         # self.logger.write_to_log('INFO','info','',f'start to config drbd resource {self.res_name}')
     
@@ -88,7 +89,8 @@ class VplxDrbd(object):
                    r'}']
 
         # self.logger.write_to_log('DATA','input','context',context)
-
+        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        # [time],[transaction_id],[-],[DATA],[value],[list],['content of drbd config file'],[data]
 
         # for echo_command in context:
         #     echo_result = SSH.execute_command(
@@ -110,27 +112,36 @@ class VplxDrbd(object):
                 continue
             else:
                 print('fail to prepare drbd config file..')
+                # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+                # [time],[transaction_id],[s],[INFO],[error],[exit],[d2],['fail to prepare drbd config file..']
+                # ??? oprt
                 sys.exit()
+
                 # s.pwe(self.logger,'fail to prepare drbd config file..')
         print(f'Create DRBD config file "{self.res_name}.res" done')
+        # [time],[transaction_id],[display],[INFO],[info],[finish],[d2],[data]
         # self.logger.write_to_log('INFO','info','',f'Create DRBD config file "{self.res_name}.res" done')
 
     def _drbd_init(self):
         '''
-        Initiakize DRBD resource
+        Initialize DRBD resource
         '''
+        info_msg = f'init drbd for {self.res_name}'
         # self.logger.write_to_log('INFO','info','',f'info:start to init drbd for {self.res_name}')
-
+        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        # [time],[transaction_id],[s],[INFO],[info],[start],[d2],[info_msg]
         init_cmd = f'drbdadm create-md {self.res_name}'
-        print(init_cmd)
+        # print(init_cmd)
         drbd_init = SSH.execute_command(init_cmd)
         #log DAT:output:cmd:f'{init_cmd}':start to init drbd for {self.res_name}
         if drbd_init['sts']:
             drbd_init = drbd_init['rst'].decode('utf-8')
-            print(drbd_init)
-            re_drbd = re.compile(
-                'New drbd meta data block successfully created')
+            # print(drbd_init)
+            re_drbd = re.compile('New drbd meta data block successfully created')
+            # [time],[transaction_id],[-],[OPRT],[re],[findall],[d2],[data]
             re_init = re_drbd.findall(drbd_init)
+            # [time],[transaction_id],[s],[INFO],[info],[d1],[d2],[data]
+            # [time],[transaction_id],[-],[DATA],[re],[d1],[d2],[data]
             # self.logger.write_to_log('DATA','output','re_result',re_init)
             if re_init:
                 print(f'{self.res_name} initialize success')

@@ -26,11 +26,14 @@ class ConnSSH(object):
 
 
     def _connect(self):
-        self.logger.write_to_log('INFO','info','','start to connect VersaPLX via SSH')
+        # self.logger.write_to_log('INFO','info','','start to connect VersaPLX via SSH')
+        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        # start 
+        # [time],[transaction_id],[-],[DATA],[value],[dict],['data for SSH connect'],[{host:self._host}]
         try:
             objSSHClient = paramiko.SSHClient()
             objSSHClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.logger.write_to_log('DATA','input','ssh_connect',[self._host,self._port,self._username,self._password,self._timeout])  #怎么记
+            # self.logger.write_to_log('DATA','input','ssh_connect',[self._host,self._port,self._username,self._password,self._timeout])  #怎么记
             # log : SSH_connect [host,port,username,password,timeout]
             objSSHClient.connect(self._host, port=self._port,
                                  username=self._username,
@@ -38,31 +41,43 @@ class ConnSSH(object):
                                  timeout=self._timeout)
             # 如何验证SSH连接成功
             # log : SSH_connect_result [T/F]
-            self.logger.write_to_log('DATA','output','ssh_connect','SSH SUCCESS')
+            # self.logger.write_to_log('DATA','output','ssh_connect','SSH SUCCESS')
             self.SSHConnection = objSSHClient
+            # info start
         except Exception as e:
-            self.logger.write_to_log('INFO', 'error', '', (str(traceback.format_exc())))
-            s.pwe(self.logger,f'Connect to {self._host} failed with error: {e}')
+            # self.logger.write_to_log('INFO', 'error', '', (str(traceback.format_exc())))
+            # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+            # [time],[transaction_id],[s],[INFO],[error],[exit],[d2],['ssh connect failed with error {e}']
+            # [time],[transaction_id],[-],[DATA],[debug],[exception],[d2],[str(traceback.format_exc())]
+            pass
+            # s.pwe(self.logger,f'Connect to {self._host} failed with error: {e}')
 
     def execute_command(self, command):
-        '1, o and data; 2, x and err; 3, 0 and no_data'
+        '1, o and data; 2, x and err;'
 
-        self.logger.write_to_log('DATA','input','cmd',command)
+        # self.logger.write_to_log('DATA','input','cmd',command)
+        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        # [time],[transaction_id],[display],[OPRT],[cmd],[ssh],[oprt_id],[command]
         stdin, stdout, stderr = self.SSHConnection.exec_command(command)
         data = stdout.read()
         if len(data) > 0:
-            self.logger.write_to_log('DATA','output',command,(1,data))
-            return {'sts':1, 'rst':data}
+            output = {'sts':1, 'rst':data}
+            # self.logger.write_to_log('DATA','output',command,(1,data))
+            # [time],[transaction_id],[-],[DATA],[cmd],[ssh],[oprt_id],[output]
+            return output
 
         err = stderr.read()
         if len(err) > 0:
-            print(err.strip())
-            self.logger.write_to_log('INFO','info','',(err.strip()))
-            self.logger.write_to_log('DATA','output',command,(2, err))
-            return {'sts':0, 'rst':err}
+            output = {'sts':0, 'rst':err}
+            # print(err.strip())
+            # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+            # [time],[transaction_id],[s],[INFO],[warning],[failed],[d2],[f{command {command} execute failed }]
+            # [time],[transaction_id],[-],[DATA],[cmd],[ssh],[oprt_id],[output]
+            return output
 
         if data == b'':
             self.logger.write_to_log('DATA','output',command,(3, ''))
+            ###
             return {'sts':1, 'rst':data}
 
     def close(self):
@@ -111,12 +126,14 @@ class ConnTelnet(object):
     # 定义exctCMD函数,用于执行命令
     def execute_command(self, cmd):
         # log: NetApp_ex_cmd
-        self.logger.write_to_log('DATA','input','cmd',cmd.encode().strip() + b'\r')
+        # self.logger.write_to_log('DATA','input','cmd',cmd.encode().strip() + b'\r')
+        # [time],[transaction_id],[s],[OPRT],[cmd],[telnet],[oprt_id],[lc_cmd]
         self.telnet.write(cmd.encode().strip() + b'\r')
         # 命令的结果的记录？
         # self.logger.write_to_log('Telnet','telnet_ex_cmd','','time_sleep:0.25')
         time.sleep(0.25)
         rely = self.telnet.read_very_eager().decode()# ?
+        # [time],[transaction_id],[s],[DATA],[cmd],[telnet],[oprt_id],[telnet_output]
         # self.logger.write_to_log('Telnet',)
 
     def close(self):
