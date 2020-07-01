@@ -50,7 +50,7 @@ class HydraArgParse():
         netapp.lun_create()
         netapp.lun_map()
 
-    def _vplx_drbd(self, unique_id, unique_str):
+    def _vplx_drbd(self):
         '''
         Connect to VersaPLX
         Go on DRDB resource configuration
@@ -61,7 +61,7 @@ class HydraArgParse():
         drbd.drbd_cfg() # run
         drbd.drbd_status_verify() # 验证有没有启动（UptoDate）
 
-    def _vplx_crm(self, unique_id, unique_str):
+    def _vplx_crm(self):
         '''
         Connect to VersaPLX
         Go on crm configuration
@@ -69,14 +69,31 @@ class HydraArgParse():
         crm = vplx.VplxCrm(self.logger)
         crm.crm_cfg()
 
-    def _host_test(self, unique_id):
+    def _host_test(self):
         '''
         Connect to host
         Umount and start to format, write, and read iSCSI LUN
         '''
         host = host_initiator.HostTest(self.logger)
-        host.ssh.execute_command('umount /mnt')
+        # host.ssh.execute_command('umount /mnt')
         host.start_test()
+
+    def execute(self, id, string):
+        self.transaction_id = sundry.get_transaction_id()
+        self.logger = log.Log(self.transaction_id)
+        print(f'\n======*** Start working for ID {id} ***======')
+        storage.ID = id
+        storage.STRING = string
+        self._storage()
+        
+        vplx.ID = id
+        vplx.STRING = string
+        self._vplx_drbd()
+        self._vplx_crm()
+        
+        time.sleep(1.5)
+        host_initiator.ID = id
+        self._host_test()
 
     @sundry.record_exception
     def run(self):
@@ -90,37 +107,34 @@ class HydraArgParse():
         uniq_str: The unique string for this test, affects related naming
         '''
         if args.uniq_str:
-            if args.id_range:
-                id_range = args.id_range.split(',')
-                if len(id_range) == 2:
-                    id_start, id_end = int(id_range[0]), int(id_range[1])
-                else:
-                    self.logger.write_to_log('INFO','info','','print_help')
-                    self.parser.print_help()
-                    sys.exit()
+            ids = args.id_range.split(',')
+            if len(ids) == 1:
+                self.execute(int(ids[0]),args.uniq_str)
+            elif len(ids) == 2:
+                id_start, id_end = int(ids[0]), int(ids[1])
+                for i in range(id_start, id_end):
+                    self.execute(i,args.uniq_str)
             else:
-                self.logger.write_to_log('INFO','info','','print_help')
-                self.parser.print_help()
-                sys.exit()
+                print('help')
+            # if len(args.id_range) > 1:
+            #     id_range = args.id_range
+            #     if len(id_range) == 2:
+            #         id_start, id_end = int(id_range[0]), int(id_range[1])
+            #     else:
+            #         self.logger.write_to_log('INFO','info','','print_help')
+            #         self.parser.print_help()
+            #         sys.exit()
+            # if len(args.id_range) = 1:
+            #     id_start = 
+            # else:
+            #     self.logger.write_to_log('INFO','info','','print_help')
+            #     self.parser.print_help()
+            #     sys.exit()
 
-            for i in range(id_start, id_end):
+            # for i in range(id_start, id_end):
                 # 新的logger对象（新的事务id）
-                self.transaction_id = sundry.get_transaction_id()
-                self.logger = log.Log(self.transaction_id)
                 
-                storage.ID = unique_id
-                storage.STRING = unique_str
-                self._storage()
                 
-                vplx.ID = unique_id
-                vplx.STRING = unique_str
-                self._vplx_drbd()
-                self._vplx_crm()
-                
-                time.sleep(1.5)
-                host_initiator.ID = unique_id
-                self._host_test()
-                print(f'\n======*** Start working for ID {i} ***======')
 
                 
                 

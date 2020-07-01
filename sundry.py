@@ -22,6 +22,7 @@ def get_disk_dev(lun_id, re_string, lsscsi_result, dev_label,logger):
     '''
     Use re to get the blk_dev_name through lun_id
     '''
+    # print(lsscsi_result)
     # self.logger.write_to_log('GetDiskPath','host','find_device',self.logger.host)
     re_find_path_via_id = re.compile(re_string)
     # self.logger.write_to_log('GetDiskPath','regular_before','find_device',lsscsi_result)
@@ -34,10 +35,10 @@ def get_disk_dev(lun_id, re_string, lsscsi_result, dev_label,logger):
             # self.logger.write_to_log('GetDiskPath','return','find_device',blk_dev_name)
             return blk_dev_name
         else:
-            print('no disk device with SCSI ID {lun_id} found')
+            print(f'no disk device with SCSI ID {lun_id} found')
 
     else:
-        print('no equal {dev_label} disk device found')
+        print(f'no equal {dev_label} disk device found')
 
         
 def record_exception(func):

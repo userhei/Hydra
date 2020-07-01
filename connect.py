@@ -23,7 +23,6 @@ class ConnSSH(object):
         self._password = password
         self.SSHConnection = None
         self._connect()
-        print('init.......')
 
 
     def _connect(self):
