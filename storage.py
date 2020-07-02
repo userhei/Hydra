@@ -26,21 +26,21 @@ class Storage:
         '''
         Create LUN with 10M bytes in size
         '''
-        self.logger.write_to_log('INFO','info','',f'start to create lun {self.lun_name}')
+        self.logger.write_to_log('INFO','info','start','',f'create lun {self.lun_name}')
         lc_cmd = f'lun create -s 10m -t linux /vol/esxi/{self.lun_name}'
         self.telnet_conn.excute_command(lc_cmd)
         print('Create LUN successful on NetApp Storage')
-        self.logger.write_to_log('INFO','info','',('Create LUN successful on NetApp Storage'))
+        self.logger.write_to_log('INFO','info','done','',('Create LUN successful on NetApp Storage'))
 
     def lun_map(self):
         '''
         Map lun of specified lun_id to initiator group
         '''
-        self.logger.write_to_log('INFO','info','',f'start to map lun {self.lun_name}')
+        self.logger.write_to_log('INFO','info','start','',f'map lun {self.lun_name}')
         lm_cmd = f'lun map /vol/esxi/{self.lun_name} hydra {self.lun_id}'
         self.telnet_conn.excute_command(lm_cmd)
         print('LUN map successful on NetApp Storage')
-        self.logger.write_to_log('INFO', 'info', '', ('LUN map successful on NetApp Storage'))
+        self.logger.write_to_log('INFO', 'info', 'done', '',('LUN map successful on NetApp Storage'))
 
     def lun_create_verify(self):
         pass

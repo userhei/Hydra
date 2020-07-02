@@ -26,7 +26,7 @@ class MyLoggerAdapter(logging.LoggerAdapter):
 
 class Log(object):
     # 
-    fmt = logging.Formatter("%(asctime)s [%(transaction_id)s] [%(type)s] [%(describe1)s] [%(describe2)s] [%(data)s]",datefmt = '[%Y/%m/%d %H:%M:%S]')
+    fmt = logging.Formatter("%(asctime)s [%(transaction_id)s] [%(type)s] [%(describe1)s] [%(describe2)s] [%(describe3)s] [%(data)s]",datefmt = '[%Y/%m/%d %H:%M:%S]')
     handler_input = logging.handlers.RotatingFileHandler(filename='Hydra_log.log',mode='a',maxBytes=10*1024*1024,backupCount=5)
     handler_input.setFormatter(fmt)
 
@@ -43,6 +43,7 @@ class Log(object):
             "type": "TYPE",
             "describe1": "",
             "describe2": "",
+            "describe3": "",
             "data": ""}
         # 获取一个自定义LoggerAdapter类的实例
         logger = MyLoggerAdapter(logger_hydra, extra_dict)
@@ -50,7 +51,7 @@ class Log(object):
 
 
     # write to log file
-    def write_to_log(self,type,describe1,describe2,data):
+    def write_to_log(self,type,describe1,describe2,describe3,data):
         logger_hydra = self.logger_create()
         # logger_hydra.logger.removeHandler(self.handler_input)
         logger_hydra.debug(
@@ -60,4 +61,5 @@ class Log(object):
                 'type': type,
                 'describe1': describe1,
                 'describe2': describe2,
+                'describe3': describe3,
                 'data': data})

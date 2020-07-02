@@ -6,15 +6,16 @@ import os
 import getpass
 import traceback
 import socket
+from random import shuffle
 
-def pwe(logger,print_str):
+def pwe(logger,print_str,level = 'info'):
     """
     print, write to log and exit.
     :param logger: Logger object for logging
     :param print_str: Strings to be printed and recorded
     """
     print(print_str)
-    logger.write_to_log('INFO','info','exit',print_str)
+    logger.write_to_log('INFO',level,'print','',print_str)
     sys.exit()
 
 class GetDiskPath(object):
@@ -33,7 +34,7 @@ class GetDiskPath(object):
         re_find_path_via_id = re.compile(self.re_string)
         # self.logger.write_to_log('GetDiskPath','regular_before','find_device',self.lsscsi_result)
         re_result = re_find_path_via_id.findall(self.lsscsi_result)
-        self.logger.write_to_log('DATA', 'output', 're_result', re_result)
+        self.logger.write_to_log('DATA', 'result', 're', '',re_result)
         if re_result:
             dict_stor = dict(re_result)
             if self.id in dict_stor.keys():
@@ -43,12 +44,12 @@ class GetDiskPath(object):
 
     def explore_disk(self):
         '''
-            Scan and get the device path from VersaPLX or Host
+        Scan and get the device path from VersaPLX or Host
         '''
         if self.lsscsi_result and self.lsscsi_result is not True:
             dev_path = self.find_device()
             if dev_path:
-                # self.logger.write_to_log('GetDiskPath','return','explore_disk',dev_path)
+                self.logger.write_to_log('DATA','result','re','',dev_path)
                 return dev_path
             else:
                 pwe(self.logger,f'Did not find the new LUN from {self.target}')
@@ -66,13 +67,19 @@ def record_exception(func):
         try:
             return func(self,*args)
         except Exception as e:
-            self.logger.write_to_log('INFO', 'error', '', str(traceback.format_exc()))
+            self.logger.write_to_log('INFO', 'error', '','', str(traceback.format_exc()))
             raise e
     return wrapper
 
 
 def get_transaction_id():
     return int(time.time())
+
+def get_cmd_id():
+    time_stamp = str(get_transaction_id())
+    str_list = list(time_stamp)
+    shuffle(str_list)
+    return ''.join(str_list)
 
 def get_username():
     return getpass.getuser()

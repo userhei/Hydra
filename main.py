@@ -9,6 +9,7 @@ import vplx
 import host_initiator
 import sundry
 import log
+import replay
 
 class HydraArgParse():
     '''
@@ -40,6 +41,28 @@ class HydraArgParse():
             action="store",
             dest="id_range",
             help='The ID range of test, split with ","')
+
+        sub_parser = self.parser.add_subparsers(dest='replay')
+        parser_replay = sub_parser.add_parser(
+            'replay',
+            aliases=['re'],
+            formatter_class=argparse.RawTextHelpFormatter
+        )
+
+        parser_replay.add_argument(
+            '-t',
+            '--transactionid',
+            dest='transactionid',
+            metavar='',
+            help='transaction id')
+
+        parser_replay.add_argument(
+            '-d',
+            '--date',
+            dest='date',
+            metavar='',
+            nargs=2,
+            help='date')
 
     def _storage(self, unique_id, unique_str):
         '''
@@ -78,28 +101,53 @@ class HydraArgParse():
         host.ssh.excute_command('umount /mnt')
         host.start_test()
 
-    @sundry.record_exception
+    def replay(self, args):
+        logdb = replay.LogDB()
+        logdb.produce_logdb()
+        if args.transactionid and args.date:
+            print('1')
+        elif args.transactionid:
+            # result = logdb.get_info_via_tid(args.transactionid)
+            # data = logdb.get_data_via_tid(args.transactionid)
+            # for info in result:
+            #     print(info[0])
+            # print('============ * data * ==============')
+            # for data_one in data:
+            #     print(data_one[0])
+
+            logdb.replay_via_tid(args.transactionid)
+
+
+        elif args.date:
+            # python3 vtel_client_main.py re -d '2020/06/16 16:08:00' '2020/06/16 16:08:10'
+            print('data')
+        else:
+            print('replay help')
+
+
+    # @sundry.record_exception
     def run(self):
         if sys.argv:
-            path = sundry.get_path()
             cmd = ' '.join(sys.argv)
-            self.logger.write_to_log('DATA', 'input', 'user_input', cmd)
+            self.logger.write_to_log('DATA', 'input', 'user_input', '',cmd)
 
         args = self.parser.parse_args()
+
         '''
         uniq_str: The unique string for this test, affects related naming
         '''
+
         if args.uniq_str:
             if args.id_range:
                 id_range = args.id_range.split(',')
                 if len(id_range) == 2:
                     id_start, id_end = int(id_range[0]), int(id_range[1])
                 else:
-                    self.logger.write_to_log('INFO','info','','print_help')
+                    self.logger.write_to_log('INFO','warning','fail','','print_help')
                     self.parser.print_help()
                     sys.exit()
             else:
-                self.logger.write_to_log('INFO','info','','print_help')
+                self.logger.write_to_log('INFO','warning','fail','','print_help')
                 self.parser.print_help()
                 sys.exit()
 
@@ -113,9 +161,15 @@ class HydraArgParse():
                 self._vplx_crm(i, args.uniq_str)
                 time.sleep(1.5)
                 self._host_test(i)
+
+        elif args.replay:
+            self.replay(args)
+
         else:
-            self.logger.write_to_log('INFO','info','','print_help')
+            self.logger.write_to_log('INFO','warning','fail','','print_help')
             self.parser.print_help()
+
+
 
 
 if __name__ == '__main__':
