@@ -2,45 +2,57 @@
 import connect
 import time
 
+global ID
+global STRING
+
 host = '10.203.1.231'
 port = 23
 username = 'root'
 password = 'Feixi@123'
 timeout = 3
 
+# [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
 
 class Storage:
     '''
     Create LUN and map to VersaPLX
     '''
 
-    def __init__(self, unique_id, unique_name,logger):
+    def __init__(self,logger):
         self.logger = logger
-        self.telnet_conn = connect.ConnTelnet(
-            host, port, username, password, timeout,logger)
+        self.telnet_conn = connect.ConnTelnet(host, port, username, password, timeout,logger)
         # print('Connect to storage NetApp')
-        self.lun_name = f'{unique_name}_{unique_id}'
-        self.lun_id = unique_id
+        self.lun_name = f'{STRING}_{ID}'
+        print('Start config lun on NetApp Storage')
+        # [time],[transaction_id],[s],[INFO],[info],[start],[d2],[f'']
+
 
     def lun_create(self):
         '''
         Create LUN with 10M bytes in size
         '''
-        self.logger.write_to_log('INFO','info','start','',f'create lun {self.lun_name}')
+        # self.logger.write_to_log('INFO','info','',f'start to create lun {self.lun_name}')
+        info_msg = f'create lun, name: {self.lun_name}'
+        # [time],[transaction_id],[s],[INFO],[info],[start],[d2],[info_msg]
         lc_cmd = f'lun create -s 10m -t linux /vol/esxi/{self.lun_name}'
-        self.telnet_conn.excute_command(lc_cmd)
-        print('Create LUN successful on NetApp Storage')
-        self.logger.write_to_log('INFO','info','done','',('Create LUN successful on NetApp Storage'))
+        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        print(f'  Start to {info_msg}')
+        self.telnet_conn.execute_command(lc_cmd)
+        print(f'  Create LUN {self.lun_name} successful')
+        # self.logger.write_to_log('INFO','info','',('Create LUN successful on NetApp Storage'))
+        # [time],[transaction_id],[s],[INFO],[info],[finish],[d2],[f'create lun, name: {self.lun_name}']
 
     def lun_map(self):
         '''
         Map lun of specified lun_id to initiator group
         '''
-        self.logger.write_to_log('INFO','info','start','',f'map lun {self.lun_name}')
-        lm_cmd = f'lun map /vol/esxi/{self.lun_name} hydra {self.lun_id}'
-        self.telnet_conn.excute_command(lm_cmd)
-        print('LUN map successful on NetApp Storage')
-        self.logger.write_to_log('INFO', 'info', 'done', '',('LUN map successful on NetApp Storage'))
+        info_msg = f'map LUN, LUN name: {self.lun_name}, LUN ID: {ID}'
+        # self.logger.write_to_log('INFO','info','',f'start to map lun {self.lun_name}')
+        lm_cmd = f'lun map /vol/esxi/{self.lun_name} hydra {ID}'
+        print(f'  Start to {info_msg}')
+        self.telnet_conn.execute_command(lm_cmd)
+        print(f'  Finish with {info_msg}')
+        # self.logger.write_to_log('INFO', 'info', '', ('LUN map successful on NetApp Storage'))
 
     def lun_create_verify(self):
         pass
@@ -50,8 +62,8 @@ class Storage:
 
 
 if __name__ == '__main__':
-    # test_stor = Storage('18', 'luntest')
-    # test_stor.lun_create()
-    # test_stor.lun_map()
+    test_stor = Storage('18', 'luntest')
+    test_stor.lun_create()
+    test_stor.lun_map()
     # test_stor.telnet_conn.close()
     pass
