@@ -1,3 +1,4 @@
+
 #  coding: utf-8
 import argparse
 import sys
@@ -8,7 +9,6 @@ import vplx
 import host_initiator
 import sundry
 import log
-
 
 class HydraArgParse():
     '''
@@ -55,9 +55,9 @@ class HydraArgParse():
         '''
         drbd = vplx.VplxDrbd(self.logger)
         # drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
-        drbd.prepare_config_file()  # 创建配置文件
-        drbd.drbd_cfg()  # run
-        drbd.drbd_status_verify()  # 验证有没有启动（UptoDate）
+        drbd.prepare_config_file() # 创建配置文件
+        drbd.drbd_cfg() # run
+        drbd.drbd_status_verify() # 验证有没有启动（UptoDate）
 
     def _vplx_crm(self):
         '''
@@ -84,13 +84,13 @@ class HydraArgParse():
         storage.ID = id
         storage.STRING = string
         self._storage()
-
+        
         vplx.ID = id
         vplx.STRING = string
         self._vplx_drbd()
         self._vplx_crm()
         time.sleep(1.5)
-
+        
         host_initiator.ID = id
         self._host_test()
 
@@ -118,7 +118,7 @@ class HydraArgParse():
                 self.parser.print_help()
 
         else:
-            # self.logger.write_to_log('INFO','info','','print_help')
+            # self.logger.write_to_log('INFO','info','','print_help') 
             self.parser.print_help()
 
 
