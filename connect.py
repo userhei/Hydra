@@ -7,6 +7,7 @@ import sundry as s
 import pprint
 import traceback
 
+global replay
 
 class ConnSSH(object):
     '''
@@ -28,7 +29,7 @@ class ConnSSH(object):
     def _connect(self):
         # self.logger.write_to_log('INFO','info','','start to connect VersaPLX via SSH')
         # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
-        # start 
+        # start
         # [time],[transaction_id],[-],[DATA],[value],[dict],['data for SSH connect'],[{host:self._host}]
         self.logger.write_to_log('T', 'INFO', 'info', 'start', '', '  Start to connect VersaPLX via SSH')
         self.logger.write_to_log('F','DATA','value','dict','data for SSH connect',{'host':self._host,'port':self._port,'username':self._username,'password':self._password})
@@ -53,16 +54,17 @@ class ConnSSH(object):
             s.pwe(self.logger,f'  Connect to {self._host} failed with error: {e}')
 
 
+
     def execute_command(self, command):
-        oprt_id = s.get_oprt_id()
-        self.logger.write_to_log('T','OPRT','cmd','ssh',oprt_id,command)
+        # oprt_id = s.get_oprt_id()
+        # self.logger.write_to_log('T','OPRT','cmd','ssh',oprt_id,command)
         # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
         # [time],[transaction_id],[display],[OPRT],[cmd],[ssh],[oprt_id],[command]
         stdin, stdout, stderr = self.SSHConnection.exec_command(command)
         data = stdout.read()
         if len(data) > 0:
             output = {'sts':1, 'rst':data}
-            self.logger.write_to_log('F','DATA','cmd','ssh',oprt_id,output)
+            # self.logger.write_to_log('F','DATA','cmd','ssh',oprt_id,output)
             # [time],[transaction_id],[-],[DATA],[cmd],[ssh],[oprt_id],[output]
             return output
 
@@ -70,17 +72,15 @@ class ConnSSH(object):
         if len(err) > 0:
             output = {'sts':0, 'rst':err}
             self.logger.write_to_log('T','INFO','warning','failed','',f'  Command "{command}" execute failed')
-            self.logger.write_to_log('F', 'DATA', 'cmd', 'ssh', oprt_id, output)
-            # print(err.strip())
-            # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
-            # [time],[transaction_id],[s],[INFO],[warning],[failed],[d2],[f{command {command} execute failed }]
-            # [time],[transaction_id],[-],[DATA],[cmd],[ssh],[oprt_id],[output]
+            # self.logger.write_to_log('F', 'DATA', 'cmd', 'ssh', oprt_id, output)
+            return output
+        if data == b'':
+            output = {'sts': 1, 'rst': data}
+            # self.logger.write_to_log('F', 'DATA', 'cmd', 'ssh', oprt_id, output)
             return output
 
-        if data == b'':
-            output = {'sts':1, 'rst':data}
-            self.logger.write_to_log('F','DATA','cmd','ssh',oprt_id,output)
-            return output
+
+
 
     def close(self):
         self.SSHConnection.close()

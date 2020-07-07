@@ -6,12 +6,15 @@ import time
 import sys
 import os
 import re
+import logdb
 
 # global SSH
 SSH = None
 
 global ID
 global STRING
+global replay
+global TID
 
 host = '10.203.1.199'
 port = 22
@@ -65,18 +68,15 @@ class VplxDrbd(object):
     '''
 
     def __init__(self, logger):
+        print('VplxDrbd __init__')
         self.logger = logger
-        self.logger.write_to_log('T', 'INFO', 'info', 'start', '', 'Start to configure DRDB resource and crm resource on VersaPLX')
-        init_ssh(self.logger)
-        self.blk_dev_name = discover_new_lun(logger)
+        # self.logger.write_to_log('T', 'INFO', 'info', 'start', '', 'Start to configure DRDB resource and crm resource on VersaPLX')
+        # init_ssh(self.logger)
+        # self.blk_dev_name = discover_new_lun(logger)
         self.res_name = f'res_{STRING}_{ID}'
         global DRBD_DEV_NAME
         DRBD_DEV_NAME = f'drbd{ID}'
-        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
-        #start 
-        #log INF:info:start to config drbd resource {r_name}
-        # self.logger.write_to_log('INFO','info','',f'start to config drbd resource {self.res_name}')
-        self.logger.write_to_log('T','INFO','info','start','',f'    Start to configure DRBD resource {self.res_name}')
+        # self.logger.write_to_log('T','INFO','info','start','',f'    Start to configure DRBD resource {self.res_name}')
     
     def prepare_config_file(self):
         '''
@@ -134,51 +134,79 @@ class VplxDrbd(object):
         '''
         Initialize DRBD resource
         '''
-        info_msg = f'      Initialize drbd for {self.res_name}'
-        # self.logger.write_to_log('INFO','info','',f'info:start to init drbd for {self.res_name}')
-        # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
-        # [time],[transaction_id],[s],[INFO],[info],[start],[d2],[info_msg]
-        self.logger.write_to_log('T','INFO','info','start','',info_msg)
-        init_cmd = f'drbdadm create-md {self.res_name}'
-        # print(init_cmd)
-        drbd_init = SSH.execute_command(init_cmd)
-        #log DAT:output:cmd:f'{init_cmd}':start to init drbd for {self.res_name}
-        if drbd_init['sts']:
-            drbd_init = drbd_init['rst'].decode('utf-8')
-            # print(drbd_init)
-            re_drbd = re.compile('New drbd meta data block successfully created')
-            # [time],[transaction_id],[-],[OPRT],[re],[findall],[d2],[data]
-            re_init = re_drbd.findall(drbd_init)
-            # [time],[transaction_id],[s],[INFO],[info],[d1],[d2],[data]
-            # [time],[transaction_id],[-],[DATA],[re],[d1],[d2],[data]
-            # self.logger.write_to_log('DATA','output','re_result',re_init)
-            oprt_id = s.get_oprt_id()
-            self.logger.write_to_log('T','OPRT','regular','findall',oprt_id,drbd_init)
-            self.logger.write_to_log('F','DATA','regular','findall',oprt_id,re_init)
-            if re_init:
-                print(f'{self.res_name} initialize success')
-                # self.logger.write_to_log('INFO','info','',(f'{self.res_name} initialize success'))
-                return True
-            else:
-                s.pwe(self.logger,f'drbd resource {self.res_name} initialize failed')
-
-        else:
-            s.pwe(self.logger,f'drbd resource {self.res_name} initialize failed')
+        print('_drbd_init')
+        return True
+        # info_msg = f'      Initialize drbd for {self.res_name}'
+        # # self.logger.write_to_log('INFO','info','',f'info:start to init drbd for {self.res_name}')
+        # # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
+        # # [time],[transaction_id],[s],[INFO],[info],[start],[d2],[info_msg]
+        # self.logger.write_to_log('T','INFO','info','start','',info_msg)
+        # init_cmd = f'drbdadm create-md {self.res_name}'
+        # # print(init_cmd)
+        # drbd_init = SSH.execute_command(init_cmd)
+        # #log DAT:output:cmd:f'{init_cmd}':start to init drbd for {self.res_name}
+        # if drbd_init['sts']:
+        #     drbd_init = drbd_init['rst'].decode('utf-8')
+        #     # print(drbd_init)
+        #     re_drbd = re.compile('New drbd meta data block successfully created')
+        #     # [time],[transaction_id],[-],[OPRT],[re],[findall],[d2],[data]
+        #     re_init = re_drbd.findall(drbd_init)
+        #     # [time],[transaction_id],[s],[INFO],[info],[d1],[d2],[data]
+        #     # [time],[transaction_id],[-],[DATA],[re],[d1],[d2],[data]
+        #     # self.logger.write_to_log('DATA','output','re_result',re_init)
+        #     oprt_id = s.get_oprt_id()
+        #     self.logger.write_to_log('T','OPRT','regular','findall',oprt_id,drbd_init)
+        #     self.logger.write_to_log('F','DATA','regular','findall',oprt_id,re_init)
+        #     if re_init:
+        #         print(f'{self.res_name} initialize success')
+        #         # self.logger.write_to_log('INFO','info','',(f'{self.res_name} initialize success'))
+        #         return True
+        #     else:
+        #         s.pwe(self.logger,f'drbd resource {self.res_name} initialize failed')
+        #
+        # else:
+        #     s.pwe(self.logger,f'drbd resource {self.res_name} initialize failed')
 
     def _drbd_up(self):
         '''
         Start DRBD resource
         '''
-        self.logger.write_to_log('T','INFO','info','start','',f'      Start to drbd up for {self.res_name}')
+        print('_drbd_up')
+        oprt_id_dec = 'Start DRBD resource'
         up_cmd = f'drbdadm up {self.res_name}'
-        drbd_up = SSH.execute_command(up_cmd)
-        if drbd_up['sts']:
-            print(f'{self.res_name} up success')
-            self.logger.write_to_log('T','INFO','info','finish','',f'      {self.res_name} started successfully')
-            # self.logger.write_to_log('INFO','info','',(f'{self.res_name} up success'))
-            return True
-        else:
-            s.pwe(self.logger,f'drbd resource {self.res_name} up failed')
+        if replay == 'no':
+            oprt_id = s.get_oprt_id()
+            self.logger.write_to_log('T','INFO','info','start','',f'      Start to drbd up for {self.res_name}')
+            self.logger.write_to_log('F','DATA','oprt_id',oprt_id_dec,'',oprt_id)
+            self.logger.write_to_log('T', 'OPRT', 'cmd', 'ssh', oprt_id, up_cmd)
+            drbd_up = SSH.execute_command(up_cmd)
+            self.logger.write_to_log('F','DATA','cmd','ssh',oprt_id,drbd_up)
+            if drbd_up['sts']:
+                print(f'{self.res_name} up success')
+                self.logger.write_to_log('T','INFO','info','finish','',f'      {self.res_name} started successfully')
+                # self.logger.write_to_log('INFO','info','',(f'{self.res_name} up success'))
+                return True
+            else:
+                s.pwe(self.logger,f'drbd resource {self.res_name} up failed')
+        elif replay == 'yes':
+            print('-------------------------------------')
+            print('_drbd_up replay:')
+            db = logdb.LogDB()
+            oprt_id_replay = db.get_oprt_id(TID,oprt_id_dec)
+            if oprt_id_replay:
+                drbd_up = eval(db.get_cmd_result(oprt_id_replay)[0])
+            else:
+                drbd_up = {}
+            if drbd_up['sts']:
+                print(f'{self.res_name} up success')
+                sys.exit()#
+                return True #原来存在
+            else:
+                print(f'drbd resource {self.res_name} up failed')
+                sys.exit()
+
+
+
 
     def _drbd_primary(self):
         '''
@@ -205,27 +233,28 @@ class VplxDrbd(object):
         '''
         Check DRBD resource status and confirm the status is UpToDate
         '''
-        self.logger.write_to_log('T','INFO','info','start','','      Start to check DRBD resource status')
-        verify_cmd = f'drbdadm status {self.res_name}'
-        result = SSH.execute_command(verify_cmd)
-        if result['sts']:
-            result = result['rst'].decode('utf-8')
-            re_display = re.compile(r'''disk:(\w*)''')
-            re_result = re_display.findall(result)
-            oprt_id = s.get_oprt_id()
-            self.logger.write_to_log('T','OPRT','regular','findall',oprt_id,result)
-            if re_result:
-                status = re_result[0]
-                self.logger.write_to_log('F', 'DATA', 'regular', 'findall', oprt_id, status)
-                if status == 'UpToDate':
-                    print(f'      {self.res_name} DRBD check successfully')
-                    self.logger.write_to_log('T','INFO','info','finish','',f'      {self.res_name} DRBD check successfully')
-                    # self.logger.write_to_log('INFO','info','',(f'{self.res_name} DRBD check successful'))
-                    return True
-                else:
-                    s.pwe(self.logger,f'{self.res_name} DRBD verification failed')
-            else:
-                s.pwe(self.logger,f'{self.res_name} DRBD does not exist')
+        pass
+        # self.logger.write_to_log('T','INFO','info','start','','      Start to check DRBD resource status')
+        # verify_cmd = f'drbdadm status {self.res_name}'
+        # result = SSH.execute_command(verify_cmd)
+        # if result['sts']:
+        #     result = result['rst'].decode('utf-8')
+        #     re_display = re.compile(r'''disk:(\w*)''')
+        #     re_result = re_display.findall(result)
+        #     oprt_id = s.get_oprt_id()
+        #     self.logger.write_to_log('T','OPRT','regular','findall',oprt_id,result)
+        #     if re_result:
+        #         status = re_result[0]
+        #         self.logger.write_to_log('F', 'DATA', 'regular', 'findall', oprt_id, status)
+        #         if status == 'UpToDate':
+        #             print(f'      {self.res_name} DRBD check successfully')
+        #             self.logger.write_to_log('T','INFO','info','finish','',f'      {self.res_name} DRBD check successfully')
+        #             # self.logger.write_to_log('INFO','info','',(f'{self.res_name} DRBD check successful'))
+        #             return True
+        #         else:
+        #             s.pwe(self.logger,f'{self.res_name} DRBD verification failed')
+        #     else:
+        #         s.pwe(self.logger,f'{self.res_name} DRBD does not exist')
 
 
 class VplxCrm(object):
@@ -250,7 +279,6 @@ class VplxCrm(object):
         if result_crm_create['sts']:
             print('create iSCSILogicalUnit successfully')
             self.logger.write_to_log('T','INFO','info','finish','','      Create iSCSILogicalUnit successfully')
-            # self.logger.write_to_log('INFO','info','',('iscisi lun_create success'))
             return True
         else:
             s.pwe(self.logger,'iscisi lun_create failed')

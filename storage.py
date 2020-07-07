@@ -4,6 +4,7 @@ import time
 
 global ID
 global STRING
+global replay
 
 host = '10.203.1.231'
 port = 23
@@ -41,6 +42,10 @@ class Storage:
         self.telnet_conn.execute_command(lc_cmd)
         print(f'  Create LUN {self.lun_name} successful')
         self.logger.write_to_log('T','INFO','info','finish','',f'  Create LUN {self.lun_name} successful')
+        # elif replay == 'yes':
+            # 数据库获取数据
+            # print(f'  Create LUN {self.lun_name} successful')
+
         # self.logger.write_to_log('INFO','info','',('Create LUN successful on NetApp Storage'))
         # [time],[transaction_id],[s],[INFO],[info],[finish],[d2],[f'create lun, name: {self.lun_name}']
 

@@ -58,9 +58,7 @@ class LogDB():
     def __init__(self):
         self.con = sqlite3.connect("logDB.db", check_same_thread=False)
         self.cur = self.con.cursor()
-        self.drop_tb()
-        self.cur.execute(self.create_table_sql)
-        self.con.commit()
+
 
     def insert(self, data):
         self.cur.execute(self.insert_sql, data)
@@ -85,6 +83,26 @@ class LogDB():
     def get_all_via_tid(self, transaction_id):
         sql = "SELECT type1,type2,describe1,describe2,data FROM logtable WHERE display = 'T' and transaction_id = '%s'" % transaction_id
         return self.sql_fetch_all(sql)
+
+    def get_cmd_result(self,oprt_id):
+        sql = "SELECT data FROM logtable WHERE type1 = 'DATA' and type2 = 'cmd' and describe2 = '%s'"%(oprt_id)
+        return self.sql_fetch_one(sql)
+
+    def get_oprt_id(self,transaction_id,describe1):
+        sql = "SELECT data FROM logtable WHERE type1 = 'DATA' and type2 = 'oprt_id' and transaction_id= '%s' and describe1 = '%s'"%(transaction_id,describe1)
+        return self.sql_fetch_one(sql)
+
+
+    def get_string_id(self,transaction_id):
+        sql = "SELECT data FROM logtable WHERE type1 = 'DATA' and describe1 = 'user_input' and transaction_id= '%s'"%transaction_id
+        result = self.sql_fetch_one(sql)
+        re_ = re.compile(r'main.py -s (.*) -id (.*)')
+        return re_.findall(result[0])
+
+
+
+    def get_id(self):
+        pass
 
     # def get_cmd_data(self, cmd_id):
     #     if cmd_id == '':
@@ -122,6 +140,9 @@ class LogDB():
                 print(data[4])
 
     def get_logdb(self):
+        self.drop_tb()
+        self.cur.execute(self.create_table_sql)
+        self.con.commit()
         log_path = "./Hydra_log.log"
         logfilename = 'Hydra_log.log'
         id = (None,)
@@ -142,4 +163,6 @@ class LogDB():
             f.close()
 
         self.con.commit()
+
+
 

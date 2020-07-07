@@ -78,7 +78,7 @@ class HydraArgParse():
         '''
         drbd = vplx.VplxDrbd(self.logger)
         # drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
-        drbd.prepare_config_file() # 创建配置文件
+        # drbd.prepare_config_file() # 创建配置文件
         drbd.drbd_cfg() # run
         drbd.drbd_status_verify() # 验证有没有启动（UptoDate）
 
@@ -101,7 +101,7 @@ class HydraArgParse():
     def execute(self, id, string):
         self.transaction_id = sundry.get_transaction_id()
         self.logger = log.Log(self.transaction_id)
-
+        vplx.replay = 'no'
         print(f'\n======*** Start working for ID {id} ***======')
 
         storage.ID = id
@@ -118,9 +118,10 @@ class HydraArgParse():
         self._host_test()
 
     def replay(self, args):
-        if args.transactionid or args.date:
-            db = logdb.LogDB()
-            db.get_logdb()
+        # if args.transactionid or args.date:
+        db = logdb.LogDB()
+        db.get_logdb()
+        vplx.replay = 'yes'
 
         if args.transactionid and args.date:
             print('1')
@@ -168,10 +169,34 @@ class HydraArgParse():
                 self.parser.print_help()
 
         elif args.replay:
-            self.replay(args)
+            if args.transactionid:
+                db = logdb.LogDB()
+                db.get_logdb()
+                string_,id_ = db.get_string_id(args.transactionid)[0]
+
+                vplx.replay = 'yes'
+                print(f'\n======*** Start working for ID {id} ***======')
+
+
+                vplx.TID = args.transactionid
+                storage.ID = id_
+                storage.STRING = string_
+                print(id_)
+                # self._storage()
+
+                vplx.ID = id_
+                vplx.STRING = string_
+                print('_vplx_drbd start')
+                self._vplx_drbd()
+                self._vplx_crm()
+                time.sleep(1.5)
+
+
+                self._host_test()
+                # self.replay(args)
 
         else:
-            # self.logger.write_to_log('INFO','info','','print_help') 
+            # self.logger.write_to_log('INFO','info','','print_help')
             self.parser.print_help()
 
 
