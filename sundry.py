@@ -1,5 +1,6 @@
 #  coding: utf-8
 import sundry
+import consts
 
 import sys
 import re
@@ -83,4 +84,5 @@ def get_path():
     return os.getcwd()
 
 def change_pointer(new_id):
-    consts.set_value['ID'] = new_id
+    consts.set_value('ID',new_id)
+

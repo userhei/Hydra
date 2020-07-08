@@ -4,9 +4,7 @@ import argparse
 import sys
 import time
 
-import storage
 import vplx
-import host_initiator
 import sundry
 import log
 import logdb
@@ -118,24 +116,19 @@ class HydraArgParse():
                 db.get_logdb()
                 string_,id_ = db.get_string_id(args.transactionid)[0]
 
-                vplx.replay = 'yes'
-                storage.replay = 'yes'
+                vplx._RPL = 'yes'
                 print(f'\n======*** Start working for ID {id} ***======')
 
                 consts._init()#初始化一个全局变量：ID
 
-                vplx.TID = args.transactionid
+                vplx._TID = args.transactionid
 
-                self._storage()
 
-                vplx.ID = id_
-                vplx.STRING = string_
+                vplx._ID = id_
+                vplx._STR = string_
                 self._vplx_drbd()
-                self._vplx_crm()
                 time.sleep(1.5)
 
-
-                self._host_test()
                 # self.replay(args)
 
         else:
