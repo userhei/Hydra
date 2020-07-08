@@ -10,6 +10,7 @@ import host_initiator
 import sundry
 import log
 import logdb
+import consts
 
 class HydraArgParse():
     '''
@@ -78,7 +79,7 @@ class HydraArgParse():
         '''
         drbd = vplx.VplxDrbd(self.logger)
         # drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
-        # drbd.prepare_config_file() # 创建配置文件
+        drbd.prepare_config_file() # 创建配置文件
         drbd.drbd_cfg() # run
         drbd.drbd_status_verify() # 验证有没有启动（UptoDate）
 
@@ -102,8 +103,10 @@ class HydraArgParse():
         self.transaction_id = sundry.get_transaction_id()
         self.logger = log.Log(self.transaction_id)
         vplx.replay = 'no'
+        storage.replay = 'no'
         print(f'\n======*** Start working for ID {id} ***======')
 
+        #初始化一个全局变量ID
         storage.ID = id
         storage.STRING = string
         self._storage()
@@ -144,8 +147,16 @@ class HydraArgParse():
         else:
             print('replay help')
 
+    def replay2(self,args):
+        db = logdb.LogDB()
+        db.get_logdb()
+        vplx.replay = 'yes'
 
-    @sundry.record_exception
+        if args.transactionid:
+            pass
+
+
+    # @sundry.record_exception
     def run(self):
         if sys.argv:
             path = sundry.get_path()
@@ -175,18 +186,18 @@ class HydraArgParse():
                 string_,id_ = db.get_string_id(args.transactionid)[0]
 
                 vplx.replay = 'yes'
+                storage.replay = 'yes'
                 print(f'\n======*** Start working for ID {id} ***======')
 
-
+                consts._init()#初始化一个全局变量：ID
+                storage.TID = args.transactionid
                 vplx.TID = args.transactionid
                 storage.ID = id_
                 storage.STRING = string_
-                print(id_)
-                # self._storage()
+                self._storage()
 
                 vplx.ID = id_
                 vplx.STRING = string_
-                print('_vplx_drbd start')
                 self._vplx_drbd()
                 self._vplx_crm()
                 time.sleep(1.5)

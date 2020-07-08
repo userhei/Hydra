@@ -26,7 +26,7 @@ class MyLoggerAdapter(logging.LoggerAdapter):
 
 class Log(object):
     # [time],[transaction_id],[display],[type_level1],[type_level2],[d1],[d2],[data]
-    fmt = logging.Formatter("%(asctime)s [%(transaction_id)s] [%(display)s] [%(type_level1)s] [%(type_level2)s] [%(describe1)s] [%(describe2)s] [%(data)s]",datefmt = '[%Y/%m/%d %H:%M:%S]')
+    fmt = logging.Formatter("%(asctime)s [%(transaction_id)s] [%(display)s] [%(type_level1)s] [%(type_level2)s] [%(describe1)s] [%(describe2)s] [%(data)s]|",datefmt = '[%Y/%m/%d %H:%M:%S]')
     handler_input = logging.handlers.RotatingFileHandler(filename='Hydra_log.log',mode='a',maxBytes=10*1024*1024,backupCount=5)
     handler_input.setFormatter(fmt)
 

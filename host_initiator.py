@@ -44,7 +44,7 @@ def iscsi_login(logger):
         re_result = re_login.findall(result_iscsi_login)
         # self.logger.write_to_log('DATA','output','re_result',re_result)
         oprt_id = s.get_oprt_id()
-        logger.write_to_log('T','OPRT','regular','findall',oprt_id,{re_login:result_iscsi_login})
+        logger.write_to_log('T','OPRT','regular','findall',oprt_id,{f'Login to.*portal: ({vplx_ip}).*successful':result_iscsi_login})
         logger.write_to_log('F','DATA','regular','findall',oprt_id,re_result)
 
         if re_result:
@@ -67,7 +67,7 @@ def find_session(logger):
         re_session = re.compile(f'tcp:.*({vplx_ip}):.*')
         re_result = re_session.findall(result_session)
         oprt_id = s.get_oprt_id()
-        logger.write_to_log('T','OPRT','regular','findall',oprt_id,{result_session:result_session})
+        logger.write_to_log('T','OPRT','regular','findall',oprt_id,{f'tcp:.*({vplx_ip}):.*':result_session})
         logger.write_to_log('F','DATA','regular','findall',oprt_id,re_result)
         # self.logger.write_to_log('DATA', 'output', 're_result', re_result)
         if re_result:
@@ -187,7 +187,7 @@ class HostTest(object):
         re_performance = re.compile(r'.*s, ([0-9.]* [A-Z]B/s)')
         re_result = re_performance.findall(result_dd)
         oprt_id = s.get_oprt_id()
-        self.logger.write_to_log('T','OPRT','regular','findall',oprt_id,{re_performance:result_dd})
+        self.logger.write_to_log('T','OPRT','regular','findall',oprt_id,{r'.*s, ([0-9.]* [A-Z]B/s)':result_dd})
     # self.logger.write_to_log('DATA', 'output', 're_result', re_result)
         if re_result:
             # self.logger.write_to_log('DATA', 'output', 'return', perf[0])
