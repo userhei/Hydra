@@ -93,16 +93,29 @@ class LogDB():
         return self.sql_fetch_one(sql)
 
 
+    # def get_string_id(self,transaction_id):
+    #     sql = f"SELECT data FROM logtable WHERE type1 = 'DATA' and describe1 = 'user_input' and transaction_id = '{transaction_id}'"
+    #     result = self.sql_fetch_one(sql)
+    #     re_ = re.compile(r'main.py -s (.*) -id (.*)')
+    #     return re_.findall(result[0])
+
+
+    def get_id(self,transaction_id,data):
+        sql = f"SELECT id FROM logtable WHERE transaction_id = '{transaction_id}' and data = '{data}'"
+        return self.sql_fetch_one(sql)
+
+
     def get_string_id(self,transaction_id):
-        sql = "SELECT data FROM logtable WHERE type1 = 'DATA' and describe1 = 'user_input' and transaction_id= '%s'"%transaction_id
+        sql = f"SELECT data FROM logtable WHERE data LIKE('%Start to create lun, name%') and transaction_id = '{transaction_id}'"
         result = self.sql_fetch_one(sql)
-        re_ = re.compile(r'main.py -s (.*) -id (.*)')
+        re_ = re.compile(r'Start to create lun, name: (.*)_(.*)')
         return re_.findall(result[0])
 
+    def get_data_via_id(self,id):
+        sql = f"SELECT data FROM logtable WHERE id = '{id}' and display = 'T' and type1 = 'INFO'"
+        return self.sql_fetch_one(sql)
 
 
-    def get_id(self):
-        pass
 
     # def get_cmd_data(self, cmd_id):
     #     if cmd_id == '':
@@ -146,7 +159,7 @@ class LogDB():
         log_path = "./Hydra_log.log"
         logfilename = 'Hydra_log.log'
         id = (None,)
-        re_ = re.compile(r'\[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?\]?)\]', re.DOTALL)
+        re_ = re.compile(r'\[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?\]?)\]\|', re.DOTALL)
         if not isFileExists(log_path):
             print('no file')
             return
@@ -155,7 +168,6 @@ class LogDB():
             f = open('./' + file)
             content = f.read()
             file_data = re_.findall(content)
-
             for data_one in file_data:
                 data = id + data_one
                 self.insert(data)
@@ -166,3 +178,7 @@ class LogDB():
 
 
 
+if __name__ == "__main__":
+    db = LogDB()
+    db.get_logdb()
+    print(db.get_string_id('1594111612'))
