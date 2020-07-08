@@ -65,13 +65,6 @@ class HydraArgParse():
             nargs=2,
             help='date')
 
-    def _storage(self):
-        '''
-        Connect to NetApp Storage, Create LUN and Map to VersaPLX
-        '''
-        netapp = storage.Storage(self.logger)
-        netapp.lun_create()
-        netapp.lun_map()
 
     def _vplx_drbd(self):
         '''
@@ -79,81 +72,21 @@ class HydraArgParse():
         '''
         drbd = vplx.VplxDrbd(self.logger)
         # drbd.discover_new_lun() # 查询新的lun有没有map过来，返回path
-        drbd.prepare_config_file() # 创建配置文件
+        # drbd.prepare_config_file() # 创建配置文件
         drbd.drbd_cfg() # run
-        drbd.drbd_status_verify() # 验证有没有启动（UptoDate）
-
-    def _vplx_crm(self):
-        '''
-        Connect to VersaPLX, Config iSCSI Target
-        '''
-        crm = vplx.VplxCrm(self.logger)
-        crm.crm_cfg()
-
-    def _host_test(self):
-        '''
-        Connect to host
-        Umount and start to format, write, and read iSCSI LUN
-        '''
-        host = host_initiator.HostTest(self.logger)
-        # host.ssh.execute_command('umount /mnt')
-        host.start_test()
+        # drbd.drbd_status_verify() # 验证有没有启动（UptoDate）
 
     def execute(self, id, string):
         self.transaction_id = sundry.get_transaction_id()
         self.logger = log.Log(self.transaction_id)
-        vplx.replay = 'no'
-        storage.replay = 'no'
+
         print(f'\n======*** Start working for ID {id} ***======')
 
         #初始化一个全局变量ID
-        storage.ID = id
-        storage.STRING = string
-        self._storage()
         
         vplx.ID = id
         vplx.STRING = string
         self._vplx_drbd()
-        self._vplx_crm()
-        time.sleep(1.5)
-        
-        host_initiator.ID = id
-        self._host_test()
-
-    def replay(self, args):
-        # if args.transactionid or args.date:
-        db = logdb.LogDB()
-        db.get_logdb()
-        vplx.replay = 'yes'
-
-        if args.transactionid and args.date:
-            print('1')
-        elif args.transactionid:
-            # result = logdb.get_info_via_tid(args.transactionid)
-            # data = logdb.get_data_via_tid(args.transactionid)
-            # for info in result:
-            #     print(info[0])
-            # print('============ * data * ==============')
-            # for data_one in data:
-            #     print(data_one[0])
-            db.print_info_via_tid(args.transactionid)
-
-            # logdb.replay_via_tid(args.transactionid)
-
-
-        elif args.date:
-            # python3 vtel_client_main.py re -d '2020/06/16 16:08:00' '2020/06/16 16:08:10'
-            print('data')
-        else:
-            print('replay help')
-
-    def replay2(self,args):
-        db = logdb.LogDB()
-        db.get_logdb()
-        vplx.replay = 'yes'
-
-        if args.transactionid:
-            pass
 
 
     # @sundry.record_exception
@@ -190,10 +123,9 @@ class HydraArgParse():
                 print(f'\n======*** Start working for ID {id} ***======')
 
                 consts._init()#初始化一个全局变量：ID
-                storage.TID = args.transactionid
+
                 vplx.TID = args.transactionid
-                storage.ID = id_
-                storage.STRING = string_
+
                 self._storage()
 
                 vplx.ID = id_

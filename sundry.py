@@ -81,3 +81,6 @@ def get_hostname():
 # Get the path of the program
 def get_path():
     return os.getcwd()
+
+def change_pointer(new_id):
+    consts.set_value['ID'] = new_id

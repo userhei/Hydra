@@ -3,6 +3,7 @@ import os
 import subprocess
 import sqlite3
 import pprint
+import consts
 
 list_cmd = []
 
@@ -100,10 +101,22 @@ class LogDB():
     #     return re_.findall(result[0])
 
 
-    def get_id(self,transaction_id,data):
-        sql = f"SELECT id FROM logtable WHERE transaction_id = '{transaction_id}' and data = '{data}'"
+    def get_id(self,transaction_id,data,id_now = 0):
+        sql = f"SELECT id FROM logtable WHERE transaction_id = '{transaction_id}' and data = '{data}' and id > id_now"
         return self.sql_fetch_one(sql)
 
+    # def change_pointer(self):
+    #     id_now = consts.get_value['ID']
+    #     id_new = self.get_id(transaction_id,data,id_now)
+    #     consts.set_value['ID'] = id_new
+
+    def find_oprt_id_via_string(self,string):
+        id_now = consts.get_value['ID']
+        sql = f"SELECT id FROM logtable WHERE string = '{string}' and id > id_now"
+        db_id = self.sql_fetch_one(sql)
+        sql = f"SELECT oprt_id FROM logtable WHERE id = '{db_id}' "
+        oprt_id = self.sql_fetch_one(sql)
+        return oprt_id
 
     def get_string_id(self,transaction_id):
         sql = f"SELECT data FROM logtable WHERE data LIKE('%Start to create lun, name%') and transaction_id = '{transaction_id}'"
