@@ -101,8 +101,9 @@ class LogDB():
     def find_oprt_id_via_string(self,transaction_id,string):
         id_now = consts.get_value('ID')
         # id_now = 20
-        sql = f"SELECT id,describe2 FROM logtable WHERE data = '{string}' and id > {id_now} and transaction_id = '{transaction_id}'"
+        sql = f"SELECT id,data FROM logtable WHERE describe1 = '{string}' and id > {id_now} and transaction_id = '{transaction_id}'"
         id_and_oprt_id = self.sql_fetch_one(sql)
+        # print(id_and_oprt_id)
         # sql = f"SELECT describe2 FROM logtable WHERE id = '{db_id}' "
         # oprt_id = self.sql_fetch_one(sql)
         return id_and_oprt_id

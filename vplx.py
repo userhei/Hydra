@@ -62,7 +62,7 @@ def discover_new_lun(logger, cmd_rescan):
     blk_dev_name = s.get_disk_dev(
         str(_ID), re_find_id_dev, result_lsscsi, 'NetApp', logger)
 
-    print(f'Find device {blk_dev_name} for LUN id {_ID}')
+    print(f'  Find device {blk_dev_name} for LUN id {_ID}')
     logger.write_to_log('T', 'INFO', 'info', 'finish', '',
                         f'    Find device {blk_dev_name} for LUN _ {_ID}')
     # self.logger.write_to_log('INFO', 'info', '', f'Find device {blk_dev_name} for LUN id {ID}')
@@ -71,6 +71,7 @@ def discover_new_lun(logger, cmd_rescan):
 
 def retry_rescan(logger):
     cmd_rescan = '/usr/bin/rescan-scsi-bus.sh'
+    
     blk_dev_name = discover_new_lun(logger, cmd_rescan)
     # print(blk_dev_name)
     if blk_dev_name:
@@ -91,13 +92,18 @@ class VplxDrbd(object):
     '''
 
     def __init__(self, logger):
-        print('VplxDrbd __init__')
+        print('Start to config DRBD resource...')
+        # now_id = consts.get_value('ID')
+        # print(f'DB ID now is : {now_id}')
         self.res_name = f'res_{_STR}_{_ID}'
         global DRBD_DEV_NAME
         DRBD_DEV_NAME = f'drbd{_ID}'
-        self.blk_dev_name = retry_rescan(logger)
         self.logger = logger
-        init_ssh(self.logger)
+        if _RPL == 'no':
+            init_ssh(self.logger)
+            self.blk_dev_name = retry_rescan(logger)
+
+            
         self.logger.write_to_log('T', 'INFO', 'info', 'start', '', 'Start to configure DRDB resource and crm resource on VersaPLX')
         self.logger.write_to_log('T','INFO','info','start','',f'    Start to configure DRBD resource {self.res_name}')
     
@@ -105,6 +111,9 @@ class VplxDrbd(object):
         '''
         Prepare DRDB resource config file
         '''
+        if _RPL == 'yes':
+            return
+
         self.logger.write_to_log('T', 'INFO', 'info', 'start', '',
                                  f'      Start prepare config fiel for resource {self.res_name}')
         context = [rf'resource {self.res_name} {{',
@@ -150,7 +159,7 @@ class VplxDrbd(object):
                 # sys.exit()
 
                 # s.pwe(self.logger,'fail to prepare drbd config file..')
-        print(f'create DRBD config file "{self.res_name}.res" done')
+        print(f'  config file "{self.res_name}.res" created')
         self.logger.write_to_log('T', 'INFO', 'info', 'finish', '',
                                  f'      Create DRBD config file "{self.res_name}.res" done')
         # [time],[transaction_id],[display],[INFO],[info],[finish],[d2],[data]
@@ -158,16 +167,15 @@ class VplxDrbd(object):
 
 
     def _get_drbd_init_cmd(self):
-        
+        now_id = consts.get_value('ID')
+        print(f'DB ID now is : {now_id}')
         unique_str = 'usnkegs'
-        print(consts.get_value('ID'))
         if _RPL == 'no':
             oprt_id = s.get_oprt_id()
             cmd_drbd_init = f'drbdadm create-md {self.res_name}'
             self.logger.write_to_log('F','DATA','STR',unique_str,'',oprt_id)
             self.logger.write_to_log('T', 'OPRT', 'cmd', 'ssh', oprt_id, cmd_drbd_init)
             result_drbd_init = SSH.execute_command(cmd_drbd_init, oprt_id)
-            print(result_drbd_init)
             self.logger.write_to_log('F', 'DATA', 'cmd', 'ssh', oprt_id, result_drbd_init)
             if result_drbd_init['sts']:
                 return result_drbd_init['rst'].decode('utf-8')
@@ -176,18 +184,19 @@ class VplxDrbd(object):
         elif _RPL == 'yes':
             db = logdb.LogDB()
             ww = db.find_oprt_id_via_string(_TID,unique_str)
-            print(ww)
             db_id,oprt_id = ww
+            print(f'  DB ID go to: {db_id}')
+            print(f'  get opration ID: {oprt_id}')
             result_drbd_init = db.get_cmd_result(oprt_id)
             if result_drbd_init:
                 result_drbd_init = eval(result_drbd_init[0])
-            if result_drbd_init['sts']:
-                result = result_drbd_init['rst'].decode('utf-8')
-            else:
-                result = None
-                print('execute drbd init command failed')
+                if result_drbd_init['sts']:
+                    result = result_drbd_init['rst'].decode('utf-8')
+                else:
+                    result = None
+                    print('execute drbd init command failed')
             s.change_pointer(db_id)
-            print(consts.get_value('ID'))
+            print(f'  Change DB ID to: {db_id}')
             return result
 
     def _drbd_init(self):
@@ -198,20 +207,51 @@ class VplxDrbd(object):
         self.logger.write_to_log('T', 'INFO', 'info', 'start', '', info_msg)
 
         init_result = self._get_drbd_init_cmd()
-        print('---------------')
-        print(init_result)
-        print('ID:',consts.get_value('ID'))
         re_drbd = re.compile('New drbd meta data block successfully created')
         re_init = re_drbd.findall(init_result)
         # oprt_id = s.get_oprt_id()
         # self.logger.write_to_log('T', 'OPRT', 'regular', 'findall', oprt_id, {'New drbd meta data block successfully created':drbd_init})
         # self.logger.write_to_log('F', 'DATA', 'regular', 'findall', oprt_id, re_init)
         if re_init:
-            print(f'{self.res_name} initialize success')
+            print(f'  Resource "{self.res_name}" initialize successful')
             # self.logger.write_to_log('INFO','info','',(f'{self.res_name} initialize success'))
             return True
         else:
             s.pwe(self.logger, f'drbd resource {self.res_name} initialize failed')
+
+
+    def _get_drbd_up_cmd(self):
+        now_id = consts.get_value('ID')
+        print(f'DB ID now is : {now_id}')
+        unique_str = 'elsflsnek'
+        if _RPL == 'no':
+            oprt_id = s.get_oprt_id()
+            cmd_drbd_up = f'drbdadm up {self.res_name}'
+            self.logger.write_to_log('F','DATA','STR',unique_str,'',oprt_id)
+            self.logger.write_to_log('T', 'OPRT', 'cmd', 'ssh', oprt_id, cmd_drbd_up)
+            result_drbd_init = SSH.execute_command(cmd_drbd_up, oprt_id)
+            self.logger.write_to_log('F', 'DATA', 'cmd', 'ssh', oprt_id, result_drbd_init)
+            if result_drbd_init['sts']:
+                return result_drbd_init['rst'].decode('utf-8')
+            else:
+                print('execute drbd up command failed')
+        elif _RPL == 'yes':
+            db = logdb.LogDB()
+            ww = db.find_oprt_id_via_string(_TID,unique_str)
+            db_id,oprt_id = ww
+            print(f'  DB ID go to: {db_id}')
+            print(f'  get opration ID: {oprt_id}')
+            result_drbd_up = db.get_cmd_result(oprt_id)
+            if result_drbd_up:
+                result_drbd_up = eval(result_drbd_up[0])
+                if result_drbd_up['sts']:
+                    result = result_drbd_up['rst'].decode('utf-8')
+            else:
+                result = None
+                print('Can not get result for cmd_drbd_up')
+            s.change_pointer(db_id)
+            print(f'  Change DB ID to: {db_id}')
+            return result
 
 
 
@@ -219,38 +259,11 @@ class VplxDrbd(object):
         '''
         Start DRBD resource
         '''
-        up_cmd = f'drbdadm up {self.res_name}'
-        unique_str = '_drdb_up'
-        if _RPL == 'no':
-            oprt_id = s.get_oprt_id()
-            self.logger.write_to_log('T','INFO','info','start','',f'      Start to drbd up for {self.res_name}')
-            # self.logger.write_to_log('F','DATA','oprt_id',oprt_id_dec,'',oprt_id) #还需要吗
-            self.logger.write_to_log('F', 'DATA', '', '', oprt_id, unique_str)
-            self.logger.write_to_log('T', 'OPRT', 'cmd', 'ssh', oprt_id, up_cmd)
-            drbd_up = SSH.execute_command(up_cmd, 787878)
-            self.logger.write_to_log('F','DATA','cmd','ssh',oprt_id,drbd_up)
-            if drbd_up['sts']:
-                print(f'{self.res_name} up success')
-                self.logger.write_to_log('T','INFO','info','finish','',f'      {self.res_name} started successfully')
-                return True
-            else:
-                s.pwe(self.logger,f'drbd resource {self.res_name} up failed')
-        elif _RPL == 'yes':
-            print('-------------------------------------')
-            print('_drbd_up replay:')
-            db = logdb.LogDB()
-            db_id,oprt_id = db.find_oprt_id_via_string(_TID,unique_str)
-            drbd_up = db.get_cmd_result(oprt_id)
-            if drbd_up:
-                drbd_up = eval(drbd_up[0])
-            s.change_pointer(db_id)
-            print('ID:',consts.get_value('ID'))
-            if drbd_up['sts']:
-                print(f'{self.res_name} up success')
-                return True
-            else:
-                print(f'drbd resource {self.res_name} up failed')
-                sys.exit()
+        result = self._get_drbd_up_cmd()
+        if result != None:
+            print(f'  Resource "{self.res_name}" bring up successful')
+            return True
+
 
 
     def _drbd_primary(self):

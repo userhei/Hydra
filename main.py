@@ -130,7 +130,7 @@ class HydraArgParse():
                 vplx._STR = _string
                 self._vplx_drbd()
                 time.sleep(1.5)
-
+## ***====**** 入口要保持一致...
                 # self.replay(args)
 
         else:
